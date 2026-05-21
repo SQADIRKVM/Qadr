@@ -30,7 +30,10 @@
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.BLUETOOTH_SCAN",
-        "android.permission.BLUETOOTH_CONNECT"
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -65,6 +68,12 @@
           "iosUrlScheme": "com.googleusercontent.apps.1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "82024d76-b9dc-4d72-b657-5661b4b696c0"
+      }
+    },
+    "owner": "sqadirkvm"
   }
 }
