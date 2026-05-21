@@ -27,10 +27,6 @@
 
 Qadr is a cross-platform productivity app built with **Expo SDK 54** and **React Native**. It keeps your data on-device first, with optional **Google sign-in** and **Supabase** sync when you want the same workspace on web, iOS, and Android.
 
-<p align="center">
-  <img src="assets/qadr.png" alt="Qadr brand mark" width="200" />
-</p>
-
 | Platform | Support |
 |----------|---------|
 | Web | `npm run web` |
