@@ -199,10 +199,59 @@ Set `EXPO_PUBLIC_CONTENT_EXTRACT_URL=http://localhost:8787/` in `.env`.
 1. Set `EXPO_PUBLIC_GROQ_API_KEY` if you want full AI.
 2. `npm test` and `npx tsc --noEmit`.
 3. Manual QA: [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md).
-4. Web: `npx expo export --platform web`.
+4. Web: `npm run build:web` (static export to `dist/`).
 5. Native: `eas login` → `eas init` → `npm run build:ios` / `build:android`.
 
 Preview builds: `npm run build:preview:ios` or `build:preview:android`.
+
+---
+
+## Deploy web on Vercel
+
+Expo web is a **static export** (`dist/`). Vercel runs the build and serves those files.
+
+### 1. Push to GitHub
+
+Ensure the repo is on GitHub (e.g. `SQADIRKVM/Qadr`).
+
+### 2. Import on Vercel
+
+1. [vercel.com](https://vercel.com) → **Add New** → **Project** → import **Qadr**.
+2. Framework Preset: **Other** (or let Vercel read [`vercel.json`](vercel.json)).
+3. **Build Command:** `npm run build:web`
+4. **Output Directory:** `dist`
+5. **Install Command:** `npm install`
+
+### 3. Environment variables (required for cloud + AI)
+
+In Vercel → Project → **Settings** → **Environment Variables**, add the same `EXPO_PUBLIC_*` keys as your local `.env` (Production + Preview):
+
+- `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- `EXPO_PUBLIC_FIREBASE_API_KEY`, `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`, `EXPO_PUBLIC_FIREBASE_PROJECT_ID`, `EXPO_PUBLIC_FIREBASE_APP_ID`
+- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`
+- `EXPO_PUBLIC_GROQ_API_KEY` (optional, for AI)
+
+Redeploy after adding variables — they are baked in at **build time**.
+
+### 4. Firebase authorized domains
+
+Firebase Console → **Authentication** → **Settings** → **Authorized domains** → add:
+
+- `your-project.vercel.app`
+- Your custom domain (if any)
+
+Without this, Google sign-in fails on the deployed URL.
+
+### 5. Deploy
+
+Click **Deploy**, or push to `main` for automatic deploys.
+
+Local test before Vercel:
+
+```bash
+npm run build:web
+npx serve dist
+```
 
 ---
 
