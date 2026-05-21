@@ -1,0 +1,15 @@
+export const spacing = {
+  unit: 8,
+  xs: 8,
+  sm: 16,
+  md: 24,
+  lg: 32,
+  xl: 40,
+  gutter: 24,
+  screenMargin: 16,
+  screenMarginDesktop: 48,
+  containerMax: 1200,
+  cardRadius: 24,
+  pillRadius: 9999,
+  statWidgetHeight: 88,
+} as const;

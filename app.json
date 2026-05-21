@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "Qadr",
+    "slug": "qadr",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#131313",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sqadirkvm.qadr",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Qadr connects to Bluetooth heart rate accessories for Bio-Sync vitals."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.sqadirkvm.qadr",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
+    },
+    "web": {
+      "name": "Qadr",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Qadr to access your contacts to add people to your ledger."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Qadr to save images to your Mind library."
+        }
+      ],
+      "expo-secure-store",
+      "expo-dev-client",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku"
+        }
+      ]
+    ]
+  }
+}
