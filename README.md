@@ -5,7 +5,11 @@
 <h1 align="center">Qadr</h1>
 
 <p align="center">
-  <strong>Your personal workspace OS</strong> — habits, focus, projects, Mind, and Bio-Sync in one calm, local-first app.
+  <strong>Your personal workspace OS</strong>
+</p>
+
+<p align="center">
+  Habits, focus, projects, Mind, and Bio-Sync — one calm, local-first app for how you live and build.
 </p>
 
 <p align="center">
@@ -25,7 +29,7 @@
 
 ## Overview
 
-Qadr is a cross-platform productivity app built with **Expo SDK 54** and **React Native**. It keeps your data on-device first, with optional **Google sign-in** and **Supabase** sync when you want the same workspace on web, iOS, and Android.
+**Qadr — Your personal workspace OS** is a cross-platform productivity app built with **Expo SDK 54** and **React Native**. It keeps your data on-device first, with optional **Google sign-in** and **Supabase** sync when you want the same workspace on web, iOS, and Android.
 
 | Platform | Support |
 |----------|---------|
@@ -211,5 +215,5 @@ Preview builds: `npm run build:preview:ios` or `build:preview:android`.
 ---
 
 <p align="center">
-  <sub>Qadr · local-first workspace</sub>
+  <sub><strong>Qadr</strong> · Your personal workspace OS</sub>
 </p>
