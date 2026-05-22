@@ -1,0 +1,30 @@
+{
+  "short_name": "Qadr",
+  "name": "Qadr — Your personal workspace OS",
+  "description": "Habits, focus, projects, Mind, and Bio-Sync in one calm, local-first app.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#131313",
+  "background_color": "#131313",
+  "orientation": "portrait"
+}

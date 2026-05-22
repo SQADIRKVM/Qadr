@@ -38,6 +38,13 @@
     },
     "web": {
       "name": "Qadr",
+      "shortName": "Qadr",
+      "description": "Your personal workspace OS",
+      "themeColor": "#131313",
+      "backgroundColor": "#131313",
+      "display": "standalone",
+      "startUrl": "/",
+      "orientation": "portrait",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
