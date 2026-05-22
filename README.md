@@ -237,10 +237,13 @@ Redeploy after adding variables — they are baked in at **build time**.
 
 Firebase Console → **Authentication** → **Settings** → **Authorized domains** → add:
 
-- `your-project.vercel.app`
+- `qadr-os.vercel.app` (production web app)
+- Any other `*.vercel.app` preview hostnames you use
 - Your custom domain (if any)
 
-Without this, Google sign-in fails on the deployed URL.
+Also add the same hostnames under [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials** → your OAuth Web client → **Authorized JavaScript origins**.
+
+Without this, Google sign-in fails on the deployed URL with `auth/unauthorized-domain`.
 
 ### 5. Deploy
 
@@ -252,6 +255,21 @@ Local test before Vercel:
 npm run build:web
 npx serve dist
 ```
+
+Confirm `dist/manifest.json`, `dist/icon-192.png`, and `dist/icon-512.png` exist after export.
+
+### 6. PWA (installable web app)
+
+The web build ships a [Web App Manifest](public/manifest.json) and icons (`public/icon-192.png`, `public/icon-512.png`). After deploy:
+
+- **Chrome / Edge:** address bar → **Install Qadr** (or menu → Install app)
+- **Safari (iOS):** Share → **Add to Home Screen**
+
+Offline caching is not enabled in v1 (manifest + installability only).
+
+### 7. Browser tab title
+
+The static export sets `<title>Qadr</title>`. At runtime, React Navigation updates `document.title` from the active route. When signed out, the auth screen is not a navigator route, so the default formatter would set the tab to `undefined`. [`App.tsx`](App.tsx) passes a `documentTitle` formatter that falls back to **Qadr** when there is no route title or name.
 
 ---
 
