@@ -24,7 +24,7 @@ import { ThemeProvider, useColors, useThemeMode } from './src/theme/ThemeContext
 import { useThemedStyles } from './src/theme/useThemedStyles';
 import type { ColorPalette } from './src/theme/palettes';
 import { setupNotificationCategories } from './src/services/notifications';
-import { getWebRootStyle, isWebPlatform } from './src/utils/webLayout';
+import { getWebRootStyle, isWebPlatform } from '@/utils/webLayout';
 import { AppSafeAreaProvider } from './src/utils/webSafeAreaProvider';
 import { DialogHost } from './src/components/dialog';
 
@@ -73,7 +73,7 @@ function AppContent() {
 
   useEffect(() => {
     if (isWebPlatform() && typeof document !== 'undefined') {
-      document.title = 'Qadr';
+      document.title = 'Qadr - Your personal workspace OS';
     }
   }, []);
 
@@ -103,7 +103,13 @@ function AppContent() {
     <GestureHandlerRootView style={[styles.root, isWebPlatform() ? getWebRootStyle() : undefined]}>
       <AppSafeAreaProvider>
         <BottomSheetModalProvider>
-          <NavigationContainer theme={navTheme}>
+          <NavigationContainer
+            theme={navTheme}
+            documentTitle={{
+              formatter: (options, route) =>
+                options?.title ?? route?.name ?? 'Qadr',
+            }}
+          >
             <StatusBar style={appearance === 'light' ? 'dark' : 'light'} />
             <ErrorBoundary>
               <RootNavigator />
