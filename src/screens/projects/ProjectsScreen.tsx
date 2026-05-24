@@ -42,7 +42,7 @@ export const ProjectsScreen = () => {
     completeOrKill,
   } = useProjectStore();
 
-  const { isMobile, isDesktop, gutter } = useResponsive();
+  const { isMobile, isDesktop, gutter, titleVariant } = useResponsive();
   const projectSheetRef = useRef<BottomSheet>(null);
   const taskSheetRef = useRef<BottomSheet>(null);
 
@@ -117,6 +117,15 @@ export const ProjectsScreen = () => {
           contentContainerStyle: { paddingTop: spacing.xs },
         }}
       >
+        <View style={styles.hero}>
+          <AppText variant={titleVariant} style={styles.heroTitle}>
+            Projects
+          </AppText>
+          <AppText variant="body-lg" muted style={styles.heroSubtitle}>
+            Plan, track milestones, and execute your high-leverage initiatives.
+          </AppText>
+        </View>
+
         {!hasAIConfigured() ? <AIConfigBanner /> : null}
 
         <View style={[styles.bento, { gap: gutter }]}>
@@ -277,6 +286,19 @@ export const ProjectsScreen = () => {
 const createStyles = (colors: ColorPalette) =>
   StyleSheet.create({
     screen: { flex: 1, minHeight: 0 },
+    hero: {
+      marginTop: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    heroTitle: {
+      color: colors.primary,
+      letterSpacing: -0.5,
+      marginBottom: 8,
+    },
+    heroSubtitle: {
+      color: colors.onSurfaceVariant,
+      maxWidth: 640,
+    },
     bento: {
       width: '100%',
       paddingBottom: spacing.md,

@@ -40,7 +40,7 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    color: colors.onSurface,
+    color: colors.primary,
     letterSpacing: -0.5,
   },
 });
