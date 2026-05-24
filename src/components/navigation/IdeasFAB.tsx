@@ -24,7 +24,7 @@ export const IdeasFAB: React.FC<IdeasFABProps> = ({ tabState }) => {
   const requestMindSheet = useIdeaUiStore((s) => s.requestMindSheet);
   const showFab = shouldShowIdeasFab(tabState);
 
-  if (!isMobile || !showFab) return null;
+  if (!showFab) return null;
 
   return (
     <Pressable

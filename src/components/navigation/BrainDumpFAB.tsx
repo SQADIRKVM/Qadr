@@ -24,7 +24,7 @@ export const BrainDumpFAB: React.FC<BrainDumpFABProps> = ({ tabState }) => {
   const { isMobile, horizontalPadding, fabBottom } = useResponsive();
   const showFab = shouldShowBrainDumpFab(tabState);
 
-  if (!isMobile || !showFab) return null;
+  if (!showFab) return null;
 
   return (
     <Pressable

@@ -6,6 +6,7 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { AppText } from '../primitives/AppText';
 import { Button } from '../primitives/Button';
 import { useMindStore } from '../../stores/useMindStore';
+import { useIdeaUiStore } from '../../stores/useIdeaUiStore';
 import { detectMindPlatform } from '../../utils/mindUrl';
 import { hasAIConfigured } from '../../services/ai/client';
 import { spacing } from '../../theme/spacing';
@@ -26,6 +27,7 @@ export const MindSaveSheet: React.FC<MindSaveSheetProps> = ({ sheetRef }) => {
   const colors = useColors();
   const styles = useThemedStyles(createStyles);
   const addItem = useMindStore((s) => s.addItem);
+  const activeSpaceId = useIdeaUiStore((s) => s.activeSpaceId);
   const [tab, setTab] = useState<SaveTab>('note');
   const [noteText, setNoteText] = useState('');
   const [urlText, setUrlText] = useState('');
@@ -48,7 +50,7 @@ export const MindSaveSheet: React.FC<MindSaveSheetProps> = ({ sheetRef }) => {
   };
 
   const save = () => {
-    const options = { enrichWithAi };
+    const options = { enrichWithAi, spaceId: activeSpaceId };
     if (tab === 'note') {
       const text = noteText.trim();
       if (!text) return;

@@ -14,6 +14,8 @@ interface MindCaptureHeaderProps {
   onSpacesPress: () => void;
   onBackFromSpaces?: () => void;
   showingSpaces?: boolean;
+  activeSpaceName?: string | null;
+  onClearSpace?: () => void;
 }
 
 export const MindCaptureHeader: React.FC<MindCaptureHeaderProps> = ({
@@ -22,16 +24,20 @@ export const MindCaptureHeader: React.FC<MindCaptureHeaderProps> = ({
   onSpacesPress,
   onBackFromSpaces,
   showingSpaces,
+  activeSpaceName,
+  onClearSpace,
 }) => {
   const colors = useColors();
   const styles = useThemedStyles(createStyles);
   const { titleVariant } = useResponsive();
 
+  const titleText = activeSpaceName ? activeSpaceName : 'My Mind';
+
   return (
     <View style={styles.wrap}>
       <View style={styles.titleRow}>
         <AppText variant={titleVariant as TextVariant} style={styles.title}>
-          My Mind
+          {titleText}
         </AppText>
         <View style={styles.badge}>
           <AppText variant="label-sm" style={styles.badgeText}>
@@ -40,7 +46,7 @@ export const MindCaptureHeader: React.FC<MindCaptureHeaderProps> = ({
         </View>
       </View>
       <AppText variant="body-lg" muted style={styles.subtitle}>
-        Links, notes, and images in one place.
+        {activeSpaceName ? `Showing captures grouped in "${activeSpaceName}".` : 'Links, notes, and images in one place.'}
       </AppText>
       <View style={styles.links}>
         {showingSpaces && onBackFromSpaces ? (
@@ -51,6 +57,13 @@ export const MindCaptureHeader: React.FC<MindCaptureHeaderProps> = ({
           </Pressable>
         ) : (
           <>
+            {activeSpaceName && onClearSpace ? (
+              <Pressable onPress={onClearSpace}>
+                <AppText variant="label-sm" style={styles.linkDanger}>
+                  ALL CAPTURES (CLEAR) ✕
+                </AppText>
+              </Pressable>
+            ) : null}
             <Pressable onPress={onRediscoverPress}>
               <AppText variant="label-sm" style={styles.link}>
                 REDISCOVER →
@@ -106,6 +119,10 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
   },
   link: {
     color: colors.primary,
+    letterSpacing: 2,
+  },
+  linkDanger: {
+    color: colors.onTertiaryContainer,
     letterSpacing: 2,
   },
 });

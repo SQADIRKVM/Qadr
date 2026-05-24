@@ -34,7 +34,7 @@ export type MindSaveInput =
   | { kind: 'url'; url: string }
   | { kind: 'image'; imageUri: string; rawContent?: string };
 
-export type MindAddOptions = { enrichWithAi?: boolean };
+export type MindAddOptions = { enrichWithAi?: boolean; spaceId?: string | null };
 
 interface MindState {
   items: MindItem[];
@@ -132,13 +132,19 @@ export const useMindStore = create<MindState>()(
             (i) => !i.isArchived && i.url && normalizeMindUrl(i.url) === norm,
           );
           if (existing) {
-            if (runAi) get().updateItem(existing.id, { enrichPending: true });
+            const patch: Partial<MindItem> = {};
+            if (runAi) patch.enrichPending = true;
+            if (options?.spaceId !== undefined) patch.spaceId = options.spaceId;
+            if (Object.keys(patch).length) get().updateItem(existing.id, patch);
             void get().processItemAfterSave(existing.id, runAi);
             return existing.id;
           }
         }
 
         const draft = buildDraft(input, runAi);
+        if (options?.spaceId) {
+          draft.spaceId = options.spaceId;
+        }
         set({ items: [draft, ...get().items] });
         void get().processItemAfterSave(draft.id, runAi);
         return draft.id;

@@ -74,8 +74,16 @@ export const WorkspaceTabBar: React.FC<BottomTabBarProps> = ({
   const insets = useSafeAreaInsets();
   const assistantBlend = isAssistantScreenFocused(state);
 
-  if (!isMobile) return null;
   if (isFocusOverlayFocused(state)) return null;
+
+  if (!isMobile) {
+    return (
+      <View style={styles.shell}>
+        <BrainDumpFAB tabState={state} />
+        <IdeasFAB tabState={state} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.shell}>

@@ -16,6 +16,7 @@ import {
 import { AppText } from '../../components/primitives/AppText';
 import { AIConfigBanner } from '../../components/primitives/AIConfigBanner';
 import { useMindStore } from '../../stores/useMindStore';
+import { useMindSpacesStore } from '../../stores/useMindSpacesStore';
 import { useIdeaUiStore } from '../../stores/useIdeaUiStore';
 import type { IdeasStackParamList } from '../../navigation/types';
 import type { MindItem } from '../../types';
@@ -37,12 +38,13 @@ export const MindVaultView: React.FC = () => {
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<StackNavigationProp<IdeasStackParamList>>();
   const { items, enrichPendingItems } = useMindStore();
+  const spaces = useMindSpacesStore((s) => s.spaces);
   const mindSheetNonce = useIdeaUiStore((s) => s.mindSheetNonce);
   const mindTab = useIdeaUiStore((s) => s.mindTab);
   const setMindTab = useIdeaUiStore((s) => s.setMindTab);
   const activeSpaceId = useIdeaUiStore((s) => s.activeSpaceId);
   const setActiveSpaceId = useIdeaUiStore((s) => s.setActiveSpaceId);
-  const { gutter, listBottomPadding } = useResponsive();
+  const { isMobile, isTablet, isDesktop, gutter, listBottomPadding } = useResponsive();
   const sheetRef = useRef<BottomSheet>(null);
 
   const [searchInput, setSearchInput] = useState('');
@@ -64,6 +66,11 @@ export const MindVaultView: React.FC = () => {
 
   const activeCount = useMemo(() => getActiveMindItems(items).length, [items]);
   const pinned = useMemo(() => getPinnedMindItems(items), [items]);
+
+  const activeSpace = useMemo(
+    () => spaces.find((s) => s.id === activeSpaceId),
+    [spaces, activeSpaceId]
+  );
 
   const filtered = useMemo(() => {
     let list = getActiveMindItems(items);
@@ -104,12 +111,15 @@ export const MindVaultView: React.FC = () => {
   const emptyVariant = searchQuery.trim() ? 'no-matches' : 'empty';
 
   const showingSpaces = mindTab === 'spaces';
+  const columns = isDesktop ? 4 : isTablet ? 3 : 2;
 
   return (
     <View style={styles.root}>
       <MindCaptureHeader
-        count={activeCount}
+        count={activeSpaceId ? filtered.length : activeCount}
         showingSpaces={showingSpaces}
+        activeSpaceName={activeSpace?.name}
+        onClearSpace={() => setActiveSpaceId(null)}
         onRediscoverPress={() => navigation.navigate('MindSerendipity')}
         onSpacesPress={() => setMindTab('spaces')}
         onBackFromSpaces={() => setMindTab('everything')}
@@ -139,7 +149,7 @@ export const MindVaultView: React.FC = () => {
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             masonry
-            numColumns={2}
+            numColumns={columns}
             optimizeItemArrangement
             getItemType={getItemType}
             style={styles.list}
