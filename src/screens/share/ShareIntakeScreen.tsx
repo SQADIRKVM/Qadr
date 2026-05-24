@@ -4,9 +4,11 @@ import { useShareIntentContext } from 'expo-share-intent';
 import { MindShareSuccessOverlay, type MindShareOverlayPhase } from '../../components/mind/MindShareSuccessOverlay';
 import { MindShareTagNotesSheet } from '../../components/mind/MindShareTagNotesSheet';
 import { saveSharedPayloadToMind } from '../../services/mind/shareSave';
-import { parseShareIntentPayload } from '../../utils/sharePayload';
+import { parseShareIntentPayload, type SharedMindPayload } from '../../utils/sharePayload';
 import { hapticLight } from '../../utils/haptics';
 import { isWebPlatform } from '../../utils/webLayout';
+import { useAuthStore } from '../../stores/useAuthStore';
+import { isAuthConfigured } from '../../services/auth/authApi';
 
 interface ShareIntakeScreenProps {
   /** When false, share handling is disabled (web / Expo Go). */
@@ -18,6 +20,9 @@ interface ShareIntakeScreenProps {
  */
 export const ShareIntakeScreen: React.FC<ShareIntakeScreenProps> = ({ enabled = true }) => {
   const { hasShareIntent, shareIntent, resetShareIntent, error } = useShareIntentContext();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = !isAuthConfigured() || !!user;
+
   const [phase, setPhase] = useState<MindShareOverlayPhase>('saving');
   const [itemId, setItemId] = useState<string | null>(null);
   const [tagSheetOpen, setTagSheetOpen] = useState(false);
@@ -57,9 +62,13 @@ export const ShareIntakeScreen: React.FC<ShareIntakeScreenProps> = ({ enabled = 
 
   useEffect(() => {
     if (visible && shareIntent && phase === 'saving' && !savingRef.current) {
-      void runSave();
+      if (!isAuthenticated) {
+        setPhase('error');
+      } else {
+        void runSave();
+      }
     }
-  }, [visible, shareIntent, phase, runSave]);
+  }, [visible, shareIntent, phase, runSave, isAuthenticated]);
 
   useEffect(() => {
     if (error) {
@@ -89,16 +98,18 @@ export const ShareIntakeScreen: React.FC<ShareIntakeScreenProps> = ({ enabled = 
         visible={!tagSheetOpen}
         phase={phase}
         errorMessage={
-          error
-            ? 'Share failed. Open Qadr and try again.'
-            : "Couldn't save this link. Open Qadr and paste the URL in Mind."
+          !isAuthenticated
+            ? 'Please log in to Qadr first to save items to your Mind.'
+            : error
+              ? 'Share failed. Open Qadr and try again.'
+              : "Couldn't save this link. Open Qadr and paste the URL in Mind."
         }
         onAddTagsNotes={() => {
           hapticLight();
           setTagSheetOpen(true);
         }}
         onDismiss={finish}
-        onRetry={phase === 'error' ? () => void runSave() : undefined}
+        onRetry={phase === 'error' && isAuthenticated ? () => void runSave() : undefined}
       />
       <MindShareTagNotesSheet
         visible={tagSheetOpen}
