@@ -204,6 +204,28 @@ Set `EXPO_PUBLIC_CONTENT_EXTRACT_URL=http://localhost:8787/` in `.env`.
 
 Preview builds: `npm run build:preview:ios` or `build:preview:android`.
 
+### Share to Mind (Instagram, Reels, links)
+
+Qadr registers as a **share target** on iOS and Android (via [`expo-share-intent`](https://github.com/achorein/expo-share-intent)). From another app → **Share** → **Qadr**:
+
+1. The link is **saved to Mind immediately** (background enrich when AI is configured).
+2. A glass overlay shows **“Good find! It's in your mind.”**
+3. **+ Add Tags/Notes** opens tag editor + notes, then dismisses back to the source app.
+
+**Requires a dev client or EAS build** (not Expo Go). After pulling:
+
+```bash
+npm install
+npx expo prebuild --clean
+eas build --profile preview --platform ios   # or android
+```
+
+**iOS:** Enable **App Groups** (`group.com.sqadirkvm.qadr`) for the main app and **Qadr Share** extension in Apple Developer. EAS should provision both targets.
+
+**Android:** Share uses `ACTION_SEND` for `text/*` (URLs and captions).
+
+**EAS file secret:** Upload `google-services.json` as a file env var (`GOOGLE_SERVICES_JSON`) — see [Expo file env vars](https://docs.expo.dev/eas/environment-variables/#file-environment-variables).
+
 ---
 
 ## Deploy web on Vercel

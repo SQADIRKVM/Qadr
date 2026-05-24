@@ -27,6 +27,9 @@ import { setupNotificationCategories } from './src/services/notifications';
 import { getWebRootStyle, isWebPlatform } from '@/utils/webLayout';
 import { AppSafeAreaProvider } from './src/utils/webSafeAreaProvider';
 import { DialogHost } from './src/components/dialog';
+import { ShareIntentProvider } from 'expo-share-intent';
+import { ShareIntakeScreen } from './src/screens/share/ShareIntakeScreen';
+import { shareIntentLinking, navigationRef } from './src/navigation/shareIntentLinking';
 
 SplashScreenNative.preventAutoHideAsync().catch(() => undefined);
 
@@ -99,26 +102,33 @@ function AppContent() {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
+  const shareEnabled = !isWebPlatform();
+
   return (
-    <GestureHandlerRootView style={[styles.root, isWebPlatform() ? getWebRootStyle() : undefined]}>
-      <AppSafeAreaProvider>
-        <BottomSheetModalProvider>
-          <NavigationContainer
-            theme={navTheme}
-            documentTitle={{
-              formatter: (options, route) =>
-                options?.title ?? route?.name ?? 'Qadr',
-            }}
-          >
-            <StatusBar style={appearance === 'light' ? 'dark' : 'light'} />
-            <ErrorBoundary>
-              <RootNavigator />
-            </ErrorBoundary>
-          </NavigationContainer>
-          <DialogHost />
-        </BottomSheetModalProvider>
-      </AppSafeAreaProvider>
-    </GestureHandlerRootView>
+    <ShareIntentProvider>
+      <GestureHandlerRootView style={[styles.root, isWebPlatform() ? getWebRootStyle() : undefined]}>
+        <AppSafeAreaProvider>
+          <BottomSheetModalProvider>
+            <NavigationContainer
+              ref={navigationRef}
+              theme={navTheme}
+              linking={shareEnabled ? shareIntentLinking : undefined}
+              documentTitle={{
+                formatter: (options, route) =>
+                  options?.title ?? route?.name ?? 'Qadr',
+              }}
+            >
+              <StatusBar style={appearance === 'light' ? 'dark' : 'light'} />
+              <ErrorBoundary>
+                <RootNavigator />
+              </ErrorBoundary>
+            </NavigationContainer>
+            <ShareIntakeScreen enabled={shareEnabled} />
+            <DialogHost />
+          </BottomSheetModalProvider>
+        </AppSafeAreaProvider>
+      </GestureHandlerRootView>
+    </ShareIntentProvider>
   );
 }
 

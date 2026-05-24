@@ -65,6 +65,10 @@ Run before calling a release production-ready. Check off each item on **web** an
 - [ ] Capture URL or note; appears in vault
 - [ ] Mind Spaces: create, rename, filter by space
 - [ ] Open capture detail; tags / watched toggle
+- [ ] **Share to Mind (native dev/EAS build):** Instagram Reel → Share → Qadr → spinner → “Good find! It's in your mind.”
+- [ ] Share flow: **+ Add Tags/Notes** → add custom tag → Done → item in vault with tags
+- [ ] Share flow: dismiss overlay returns to source app (no stuck on Qadr home)
+- [ ] Share duplicate URL updates existing Mind item (no duplicate rows)
 
 ### Projects
 
@@ -84,6 +88,7 @@ Run before calling a release production-ready. Check off each item on **web** an
 
 ## Native (iOS or Android)
 
+- [ ] Share extension / intent: Qadr appears in system share sheet for links (not available on web)
 - [ ] App icon is Qadr mark (not Expo Go icon — requires dev/production build)
 - [ ] Splash shows logo on black background
 - [ ] Notification permission prompt; bedtime nudge schedules (Settings refresh)

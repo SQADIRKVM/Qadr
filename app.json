@@ -2,6 +2,7 @@
   "expo": {
     "name": "Qadr",
     "slug": "qadr",
+    "scheme": "qadr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,7 +18,15 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sqadirkvm.qadr",
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription": "Qadr connects to Bluetooth heart rate accessories for Bio-Sync vitals."
+        "NSBluetoothAlwaysUsageDescription": "Qadr connects to Bluetooth heart rate accessories for Bio-Sync vitals.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku",
+              "qadr"
+            ]
+          }
+        ]
       }
     },
     "android": {
@@ -73,6 +82,22 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku"
+        }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
+            "NSExtensionActivationSupportsWebPageWithMaxCount": 1,
+            "NSExtensionActivationSupportsText": true
+          },
+          "iosAppGroupIdentifier": "group.com.sqadirkvm.qadr",
+          "iosShareExtensionName": "Qadr Share",
+          "androidIntentFilters": ["text/*"],
+          "androidMainActivityAttributes": {
+            "android:launchMode": "singleTask"
+          }
         }
       ]
     ],
