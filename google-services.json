@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1046367765598",
+    "project_id": "qadr-408c7",
+    "storage_bucket": "qadr-408c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046367765598:android:de14338df5fe63a88020cf",
+        "android_client_info": {
+          "package_name": "com.sqadirkvm.qadr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1046367765598-b76ds65lb354ff7ai0gq2a5s5pera7mu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sqadirkvm.qadr",
+            "certificate_hash": "b6c42b74a814efe92a9eace95ab17f81c1280371"
+          }
+        },
+        {
+          "client_id": "1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9vCnyO6mLfw11bIMaDX3FvTIfqAitC9o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1046367765598-en2qlcnikjfsp5g3lrcfgtb0lfdfiuku.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
