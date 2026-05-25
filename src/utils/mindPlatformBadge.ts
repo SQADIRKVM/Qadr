@@ -92,6 +92,12 @@ export function getMindFormatBadge(item: MindItem): MindFormatBadge | null {
 
 /** Slide URIs for carousel (previewImages or single previewImageUrl). */
 export function getMindPreviewSlides(item: MindItem): string[] {
+  const kind = getMindContentKind(item);
+  if (kind === 'reel' || kind === 'video') {
+    const single = item.previewImageUrl ?? item.imageUri ?? item.previewImages?.[0];
+    return single ? [single] : [];
+  }
+
   if (item.previewImages?.length) return item.previewImages;
   const single = item.previewImageUrl ?? item.imageUri;
   return single ? [single] : [];

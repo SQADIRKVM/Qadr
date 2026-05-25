@@ -86,4 +86,16 @@ describe('mindPlatformBadge', () => {
     );
     assert.equal(slides.length, 2);
   });
+
+  it('getMindPreviewSlides limits slides to 1 for video/reel items', () => {
+    const slides = getMindPreviewSlides(
+      baseItem({
+        previewImages: ['https://a.com/1.jpg', 'https://a.com/2.jpg'],
+        previewImageUrl: 'https://a.com/1.jpg',
+        contentKind: 'reel',
+      }),
+    );
+    assert.equal(slides.length, 1);
+    assert.equal(slides[0], 'https://a.com/1.jpg');
+  });
 });
