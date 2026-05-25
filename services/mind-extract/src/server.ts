@@ -118,6 +118,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (reqUrl.pathname === '/' && !target) {
+    sendJson(res, 200, { status: 'ok', service: 'qadr-mind-extract' });
+    return;
+  }
+
   if (reqUrl.pathname !== '/' && reqUrl.pathname !== '/extract') {
     sendJson(res, 404, { error: 'Not found' });
     return;
