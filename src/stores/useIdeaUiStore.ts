@@ -9,11 +9,13 @@ interface IdeaUiState {
   viewMode: IdeaViewMode;
   mindTab: MindTab;
   activeSpaceId: string | null;
+  mindSearch: string;
   requestAddSheet: () => void;
   requestMindSheet: () => void;
   setViewMode: (mode: IdeaViewMode) => void;
   setMindTab: (tab: MindTab) => void;
   setActiveSpaceId: (id: string | null) => void;
+  setMindSearch: (search: string) => void;
 }
 
 export const useIdeaUiStore = create<IdeaUiState>((set) => ({
@@ -22,9 +24,11 @@ export const useIdeaUiStore = create<IdeaUiState>((set) => ({
   viewMode: 'vault',
   mindTab: 'everything',
   activeSpaceId: null,
+  mindSearch: '',
   requestAddSheet: () => set((s) => ({ addSheetNonce: s.addSheetNonce + 1 })),
   requestMindSheet: () => set((s) => ({ mindSheetNonce: s.mindSheetNonce + 1 })),
   setViewMode: (viewMode) => set({ viewMode }),
   setMindTab: (mindTab) => set({ mindTab }),
   setActiveSpaceId: (activeSpaceId) => set({ activeSpaceId: activeSpaceId || null }),
+  setMindSearch: (mindSearch) => set({ mindSearch }),
 }));

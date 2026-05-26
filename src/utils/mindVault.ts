@@ -50,6 +50,12 @@ export function matchesMindType(item: MindItem, filter: MindTypeFilter): boolean
 export function matchesMindSearch(item: MindItem, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
+  
+  if (q.startsWith('#')) {
+    const cleanTag = q.replace(/^#+/, '').replace(/\s+/g, '-');
+    return item.autoTags.some((tag) => tag.toLowerCase().includes(cleanTag));
+  }
+
   const haystack = [
     item.title,
     item.summary ?? '',

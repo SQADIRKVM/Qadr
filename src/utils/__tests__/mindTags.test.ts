@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  filterAndMergeSmartTags,
   finalizeMindTags,
   generateTopicTagsFromContent,
   mergeMindTags,
@@ -46,6 +47,16 @@ describe('mindTags', () => {
     assert.equal(tags.includes('277'), false);
   });
 
+  it('generateTopicTagsFromContent excludes CSS/HTML/JS hashes and database IDs', () => {
+    const tags = generateTopicTagsFromContent({
+      description: 'workflow layout class ctrzycuqotfrlhagde0a3mwqmapio63n and key lqk1zs2ss8kmoolw3jklyw',
+    });
+    assert.ok(tags.includes('workflow'));
+    assert.ok(tags.includes('layout'));
+    assert.equal(tags.includes('ctrzycuqotfrlhagde0a3mwqmapio63n'), false);
+    assert.equal(tags.includes('lqk1zs2ss8kmoolw3jklyw'), false);
+  });
+
   it('generateTopicTagsFromContent ignores Untitled default title', () => {
     const tags = generateTopicTagsFromContent({
       title: 'Untitled',
@@ -63,5 +74,35 @@ describe('mindTags', () => {
     assert.ok(tags.includes('delimitation') || tags.includes('bill'));
     assert.equal(tags.includes('youtube'), false);
     assert.equal(tags.includes('reel'), false);
+  });
+
+  it('filterAndMergeSmartTags discards naive placeholder tags but preserves user custom tags', () => {
+    const input = {
+      title: "Aikanksha's lead generation workflow optimization using custom tools",
+      excerpt: "Stop paying for lead generation tools, I was paying thousands",
+    };
+
+    // The naive tags extracted initially
+    const naiveTags = generateTopicTagsFromContent(input);
+    assert.ok(naiveTags.includes('lead'));
+    assert.ok(naiveTags.includes('stop'));
+
+    // Simulate currentTags having the naive tags + a user manually added tag 'my-custom-tag'
+    const currentTags = [...naiveTags, 'my-custom-tag'];
+
+    // Simulated AI tags
+    const aiTags = ['lead-generation', 'workflow-optimization', 'custom-tools'];
+
+    const result = filterAndMergeSmartTags(currentTags, aiTags, input);
+
+    // The result should contain the user custom tag and the AI tags
+    assert.ok(result.includes('my-custom-tag'));
+    assert.ok(result.includes('lead-generation'));
+    assert.ok(result.includes('workflow-optimization'));
+    assert.ok(result.includes('custom-tools'));
+
+    // The result should NOT contain any of the naive placeholder tags that weren't added by the user
+    assert.equal(result.includes('lead'), false);
+    assert.equal(result.includes('stop'), false);
   });
 });

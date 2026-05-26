@@ -133,6 +133,14 @@ export function isJunkTopicToken(word: string): boolean {
   if (!w || w.length <= 2) return true;
   if (/^\d+$/.test(w)) return true;
   if (/^\d+(likes|comments|views)$/.test(w)) return true;
+
+  // Discard CSS/JS classes, hashes, database IDs, etc.
+  // 1. Tokens longer than 16 characters are highly likely to be CSS hashes, long class names, or random alphanumeric strings.
+  if (w.length > 16) return true;
+  // 2. Tokens that contain both letters and digits, and are of length >= 10 with at least 2 digits (e.g. lqk1zs2ss8kmoolw3jklyw, ctrzycuqotfrlhagde0a3mwqmapio63n).
+  if (w.length >= 10 && /[a-z]/i.test(w) && /\d/.test(w) && (w.match(/\d/g) ?? []).length >= 2) {
+    return true;
+  }
   return false;
 }
 
@@ -249,6 +257,18 @@ export function mergeMindTags(
     ...stripPlatformTags(incoming),
   ];
   return [...new Set(merged)].slice(0, max);
+}
+
+/** Smart tag merge: discards naive/hardcoded tags while keeping user-added custom tags and prioritizing AI tags. */
+export function filterAndMergeSmartTags(
+  currentTags: string[],
+  aiTags: string[],
+  input: TopicTagInput,
+  max = 12,
+): string[] {
+  const naiveTags = generateTopicTagsFromContent(input);
+  const userAddedTags = currentTags.filter((t) => !naiveTags.includes(t));
+  return mergeMindTags(userAddedTags, aiTags, max);
 }
 
 /** Finalize AI tags: topic-only, with fallback from content text. */

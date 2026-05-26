@@ -237,9 +237,10 @@ export const MindFocusScreen = () => {
     );
   };
 
+
   return (
     <ScreenShell header="none" scroll={false}>
-      <SubScreenHeader title="Capture" onBack={() => navigation.goBack()} />
+      <SubScreenHeader title={getMindDisplayTitle(item)} onBack={() => navigation.goBack()} />
 
       <ScrollView
         style={styles.scroll}
@@ -248,7 +249,16 @@ export const MindFocusScreen = () => {
       >
         {showHero ? (
           <View style={styles.heroBlock}>
-            <MindPreviewHero item={item} onOpenUrl={openUrl} height={220} />
+            <View style={[
+              styles.heroWrapper,
+              contentKind === 'reel' ? styles.heroPortrait : styles.heroLandscape
+            ]}>
+              <MindPreviewHero
+                item={item}
+                onOpenUrl={openUrl}
+                height={contentKind === 'reel' ? 400 : 220}
+              />
+            </View>
             {showCarouselHint ? (
               <Pressable
                 onPress={() => {
@@ -315,13 +325,13 @@ export const MindFocusScreen = () => {
 
         <View style={styles.notesSection}>
           <AppText variant="label-sm" style={styles.sectionLabel}>
-            Notes
+            MIND NOTES
           </AppText>
           <TextInput
             style={styles.notesInput}
             value={notes}
             onChangeText={setNotes}
-            placeholder="Add a note..."
+            placeholder="Type here to add a note..."
             placeholderTextColor={colors.outlineVariant}
             multiline
             textAlignVertical="top"
@@ -365,16 +375,28 @@ export const MindFocusScreen = () => {
         ) : null}
 
         {contentKind === 'reel' || contentKind === 'video' ? (
-          <Button
-            label={item.watchedAt ? 'Watched' : "I've watched this"}
-            variant={item.watchedAt ? 'secondary' : 'primary'}
+          <Pressable
+            style={[
+              styles.watchedPremiumBtn,
+              item.watchedAt ? styles.watchedActive : styles.watchedInactive
+            ]}
             onPress={() => {
               hapticLight();
               updateItem(item.id, {
                 watchedAt: item.watchedAt ? null : new Date().toISOString(),
               });
             }}
-          />
+          >
+            <MaterialIcons
+              name={item.watchedAt ? "check-circle" : "check"}
+              size={18}
+              color={item.watchedAt ? '#2ECC71' : '#FFFFFF'}
+              style={{ marginRight: spacing.xs }}
+            />
+            <AppText style={styles.watchedPremiumText}>
+              {item.watchedAt ? "I've watched this" : "I've watched this reel"}
+            </AppText>
+          </Pressable>
         ) : null}
 
         {!showAiBlocks && !item.url ? (
@@ -393,23 +415,37 @@ export const MindFocusScreen = () => {
           Saved · {savedAgo}
         </AppText>
 
-        <View style={styles.actions}>
+        <View style={styles.premiumActionsRow}>
           {showAiBlocks ? (
-            <Button
-              label="REFRESH AI"
-              variant="secondary"
+            <Pressable
+              style={[styles.circularButton, item.enrichPending && styles.disabledBtn]}
               onPress={onEnhanceAi}
               disabled={item.enrichPending}
-            />
+            >
+              <MaterialIcons name="refresh" size={20} color={colors.onSurface} />
+            </Pressable>
           ) : null}
-          <Button
-            label={item.isPinned ? 'UNPIN' : 'PIN'}
-            variant="secondary"
+          <Pressable
+            style={[
+              styles.circularButton,
+              item.isPinned && styles.activeCircularButton,
+              !canPin && styles.disabledBtn,
+            ]}
             onPress={() => canPin && togglePin(item.id)}
             disabled={!canPin}
-          />
-          <Button label="SHARE" variant="secondary" onPress={onShare} />
-          <Button label="ARCHIVE" variant="destructive" onPress={onArchive} />
+          >
+            <MaterialIcons
+              name={item.isPinned ? 'star' : 'star-border'}
+              size={20}
+              color={item.isPinned ? colors.accentRed : colors.onSurface}
+            />
+          </Pressable>
+          <Pressable style={styles.circularButton} onPress={onShare}>
+            <MaterialIcons name="share" size={20} color={colors.onSurface} />
+          </Pressable>
+          <Pressable style={[styles.circularButton, styles.archiveBtn]} onPress={onArchive}>
+            <MaterialIcons name="archive" size={20} color={colors.onSurface} />
+          </Pressable>
         </View>
       </ScrollView>
     </ScreenShell>
@@ -425,15 +461,33 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   titleInput: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'SpaceGrotesk_700Bold',
     color: colors.onSurface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
     paddingVertical: spacing.sm,
+    textAlign: 'center',
   },
   heroBlock: {
     gap: spacing.sm,
+    alignItems: 'center',
+    width: '100%',
+  },
+  heroWrapper: {
+    borderRadius: spacing.cardRadius,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceContainer,
+  },
+  heroPortrait: {
+    width: 250,
+    height: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  heroLandscape: {
+    width: '100%',
   },
   carouselHint: {
     textAlign: 'center',
@@ -441,19 +495,25 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
   previewHint: {
     marginTop: -spacing.sm,
     lineHeight: 20,
+    textAlign: 'center',
   },
   enriching: {
     color: colors.primary,
     fontSize: 11,
+    textAlign: 'center',
   },
   linkRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
+    backgroundColor: colors.surfaceContainer,
+    padding: spacing.sm,
+    borderRadius: spacing.pillRadius,
   },
   linkText: {
-    flex: 1,
     color: colors.primary,
+    fontSize: 13,
   },
   imageTextCard: {
     padding: spacing.md,
@@ -463,18 +523,19 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
   sectionLabel: {
     color: colors.onSurfaceVariant,
     fontSize: 11,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   notesInput: {
-    minHeight: 100,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
+    minHeight: 120,
     borderRadius: spacing.cardRadius,
     padding: spacing.md,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.onSurface,
     fontFamily: 'Inter_400Regular',
-    backgroundColor: colors.cardBgDeep,
+    backgroundColor: colors.surfaceContainerHigh || '#2A292D',
+    borderWidth: 0,
   },
   aiPrompt: {
     padding: spacing.md,
@@ -513,8 +574,68 @@ const createStyles = (colors: ColorPalette) => StyleSheet.create({
   meta: {
     fontSize: 13,
     marginTop: spacing.xs,
+    textAlign: 'center',
   },
-  actions: {
-    gap: spacing.sm,
+  premiumActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.lg,
+    marginTop: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  circularButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.surfaceContainerHigh || '#2A292D',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  activeCircularButton: {
+    borderColor: colors.accentRed,
+    borderWidth: 1,
+  },
+  archiveBtn: {
+    backgroundColor: 'rgba(235, 87, 87, 0.15)',
+  },
+  disabledBtn: {
+    opacity: 0.35,
+  },
+  watchedPremiumBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    backgroundColor: '#1E1D22',
+    borderColor: '#3A393E',
+    borderWidth: 1.5,
+    marginTop: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  watchedActive: {
+    backgroundColor: 'rgba(46, 204, 113, 0.15)',
+    borderColor: '#2ECC71',
+  },
+  watchedInactive: {
+    backgroundColor: '#1E1D22',
+    borderColor: '#3A393E',
+  },
+  watchedPremiumText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    letterSpacing: 0.5,
   },
 });

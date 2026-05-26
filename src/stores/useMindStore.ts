@@ -26,7 +26,13 @@ import {
   normalizeMindItemTitle,
   normalizeMindUrl,
 } from '../utils/mindTitle';
-import { generateTopicTagsFromContent, mergeMindTags, topicTagInputFromItem } from '../utils/mindTags';
+import {
+  filterAndMergeSmartTags,
+  generateTopicTagsFromContent,
+  isJunkTopicToken,
+  mergeMindTags,
+  topicTagInputFromItem,
+} from '../utils/mindTags';
 import { createPersistStorage } from './storage';
 
 export type MindSaveInput =
@@ -321,7 +327,15 @@ export const useMindStore = create<MindState>()(
         }
         const mergedPatch = { ...patch };
         if (mergedPatch.autoTags?.length) {
-          mergedPatch.autoTags = mergeMindTags(fresh.autoTags ?? [], mergedPatch.autoTags);
+          if (fromStub) {
+            mergedPatch.autoTags = mergeMindTags(fresh.autoTags ?? [], mergedPatch.autoTags);
+          } else {
+            mergedPatch.autoTags = filterAndMergeSmartTags(
+              fresh.autoTags ?? [],
+              mergedPatch.autoTags,
+              topicTagInputFromItem(fresh),
+            );
+          }
         }
         get().updateItem(id, {
           ...mergedPatch,
@@ -356,6 +370,9 @@ export const useMindStore = create<MindState>()(
         if (!state) return;
         state.items = state.items.map((item) => {
           const normalized = normalizeMindItemTitle(item);
+          if (normalized.autoTags) {
+            normalized.autoTags = normalized.autoTags.filter((t) => !isJunkTopicToken(t));
+          }
           if (
             !normalized.aiEnriched &&
             ((normalized.autoTags?.length ?? 0) > 0 || !!normalized.summary)

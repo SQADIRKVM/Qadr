@@ -29,11 +29,27 @@ export const MindCard: React.FC<MindCardProps> = ({ item, onPress }) => {
   const subtitle = getMindCardSubtitle(item);
   const displayTitle = getMindDisplayTitle(item);
 
+  const getThumbnailAspectRatio = () => {
+    if (kind === 'reel' || item.isReel) {
+      return 0.65; // Tall vertical video
+    }
+    if (kind === 'video') {
+      return 1.6; // Widescreen horizontal video
+    }
+    // Stagger other image types dynamically for a natural Pinterest flow
+    const charCodeSum = item.id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return charCodeSum % 2 === 0 ? 0.85 : 1.1;
+  };
+
   return (
     <BentoCard deep onPress={onPress} style={[styles.card, showThumb && styles.cardMedia]}>
       {showThumb ? (
         <View style={styles.thumbWrap}>
-          <Image source={{ uri: thumbUri }} style={styles.thumb} resizeMode="cover" />
+          <Image
+            source={{ uri: thumbUri }}
+            style={[styles.thumb, { aspectRatio: getThumbnailAspectRatio() }]}
+            resizeMode="cover"
+          />
           {showPlay ? (
             <View style={styles.playOverlay} pointerEvents="none">
               <View style={styles.playCircle}>

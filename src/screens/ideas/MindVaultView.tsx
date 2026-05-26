@@ -47,8 +47,11 @@ export const MindVaultView: React.FC = () => {
   const { isMobile, isTablet, isDesktop, gutter, listBottomPadding } = useResponsive();
   const sheetRef = useRef<BottomSheet>(null);
 
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const mindSearch = useIdeaUiStore((s) => s.mindSearch);
+  const setMindSearch = useIdeaUiStore((s) => s.setMindSearch);
+
+  const [searchInput, setSearchInput] = useState(mindSearch);
+  const [searchQuery, setSearchQuery] = useState(mindSearch);
   const [refreshing, setRefreshing] = useState(false);
 
   const debouncedSetSearch = useMemo(
@@ -59,6 +62,15 @@ export const MindVaultView: React.FC = () => {
   useEffect(() => {
     debouncedSetSearch(searchInput);
   }, [searchInput, debouncedSetSearch]);
+
+  useEffect(() => {
+    setSearchInput(mindSearch);
+  }, [mindSearch]);
+
+  const handleSearchChange = (val: string) => {
+    setSearchInput(val);
+    setMindSearch(val);
+  };
 
   useEffect(() => {
     if (mindSheetNonce > 0) sheetRef.current?.expand();
@@ -141,7 +153,7 @@ export const MindVaultView: React.FC = () => {
           <TopOfMind items={pinned} onPressItem={openFocus} />
 
           <View style={styles.controls}>
-            <MindSearchBar value={searchInput} onChangeText={setSearchInput} />
+            <MindSearchBar value={searchInput} onChangeText={handleSearchChange} />
           </View>
 
           <FlashList
