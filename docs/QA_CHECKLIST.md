@@ -103,6 +103,17 @@ Run before calling a release production-ready. Check off each item on **web** an
 - [ ] Assistant: alert + reply references habits/sleep/project when available
 - [ ] Weekly Review: local or normalized fallback from your data
 
+## Browser Extension (Web Clipper)
+
+- [ ] Extension loads unpacked in `chrome://extensions/` with Developer Mode enabled without errors or warnings.
+- [ ] Logged out state shows the branded "Sign In with Qadr Web" button and the crimson "Connect manually with Sync Key" fallback toggle.
+- [ ] Tapping "Sign In with Qadr Web" opens `https://qadr-os.vercel.app` (or local port).
+- [ ] Logging in on the Qadr web app automatically logs in the extension popup within seconds (Zero-input sync verification).
+- [ ] Tapping "Save Link" in the popup successfully saves the tab, adds default tags, and slides a glowing glassmorphic crimson confirmation toast on the active page.
+- [ ] Context Menu saving works: right-clicking a page, image, or text selection displays standard "Save to Qadr Mind" options and triggers the save toast.
+- [ ] Recents feed displays the 5 most recent mind items in real-time.
+- [ ] Logging out of the web app immediately logs out the extension popup.
+
 ## Build / release
 
 - [ ] `npx tsc --noEmit` passes

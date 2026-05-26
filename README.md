@@ -295,11 +295,36 @@ The static export sets `<title>Qadr</title>`. At runtime, React Navigation updat
 
 ---
 
+## Browser Extension (Web Clipper)
+
+Qadr includes a premium **Manifest V3 Web Browser Extension** (Web Clipper) designed to instantly capture links, articles, selections, and images directly into your Qadr Mind workspace, matching the obsidian dark and glowing crimson aesthetic.
+
+### Features
+1. **Automated Zero-Input Syncing**: Log in to your Qadr web app (`qadr-os.vercel.app` or `localhost`), and the extension will automatically sync and log you in without requiring manual Sync Key paste!
+2. **Context Menu Saves**: Right-click any page, selection, or image to save it instantly with one click.
+3. **Glassmorphic Save Confirmation**: A premium Crimson toast slides onto the active web page showing a checkmark, tags, and category badges when an item is successfully saved.
+4. **Recent Captures Feed**: View your last 5 saved clipper items directly inside the extension popup.
+
+### Installation & Development Setup
+1. Open **`chrome://extensions/`** in your browser.
+2. Toggle **"Developer mode"** in the top-right corner.
+3. Click **"Load unpacked"** and select the folder:
+   `/Users/sarhanqadir/Desktop/antigravity/qadr/extension`
+4. Configure environment credentials inside [extension/.env](file:///Users/sarhanqadir/Desktop/antigravity/qadr/extension/.env):
+   - **Production**: Set `WEB_APP_URL=https://qadr-os.vercel.app` (enabled by default).
+   - **Local Development**: Uncomment `WEB_APP_URL=http://localhost:8081`.
+
+For full details on packaging and store publishing, see [extension_deployment_guide.md](file:///Users/sarhanqadir/.gemini/antigravity-ide/brain/17a9a926-1868-4844-ae3e-f2f72d685586/extension_deployment_guide.md).
+
+---
+
 ## Docs
 
 - [Expo SDK 54](https://docs.expo.dev/versions/v54.0.0/) — framework reference for this repo
 - [QA checklist](docs/QA_CHECKLIST.md) — release testing
 - [AGENTS.md](AGENTS.md) — agent / contributor notes
+- [Extension Guide](file:///Users/sarhanqadir/.gemini/antigravity-ide/brain/17a9a926-1868-4844-ae3e-f2f72d685586/extension_deployment_guide.md) — publishing the web clipper
+- [Extension Walkthrough](file:///Users/sarhanqadir/.gemini/antigravity-ide/brain/17a9a926-1868-4844-ae3e-f2f72d685586/extension_walkthrough.md) — extension feature details
 
 ---
 

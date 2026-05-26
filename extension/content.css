@@ -1,0 +1,292 @@
+qadr-toast.qadr-clipper-toast, qadr-toast {
+  display: block !important;
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
+  width: 220px !important; /* Compact starting size for saving state */
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  bottom: auto !important;
+  background: rgba(10, 9, 12, 0.88) !important;
+  border: 1px solid rgba(255, 0, 49, 0.25) !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.6), 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 4px 16px rgba(255, 0, 49, 0.12) !important;
+  z-index: 2147483647 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Outfit", "Inter", "Segoe UI", sans-serif !important;
+  color: #E5E2E1 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  
+  /* Elastic bounce-in and silky-smooth layout transformations */
+  animation: qadrElasticSlideIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+  transition: 
+    width 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease !important;
+}
+
+/* Ambient Moving Border Shimmer */
+.qadr-clipper-toast::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -150% !important;
+  width: 300% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  ) !important;
+  transform: skewX(-25deg) !important;
+  pointer-events: none !important;
+  animation: qadrShimmer 4.5s infinite linear !important;
+}
+
+/* Morph to wider size for Saved state */
+.qadr-clipper-toast.qadr-toast-saved {
+  width: 310px !important;
+  border-color: rgba(255, 0, 49, 0.4) !important;
+  box-shadow: 
+    0 28px 56px rgba(0, 0, 0, 0.65), 
+    0 0 0 1px rgba(255, 255, 255, 0.07) inset,
+    0 4px 20px rgba(255, 0, 49, 0.2) !important;
+}
+
+/* Morph to wider size for Error state */
+.qadr-clipper-toast.qadr-toast-error {
+  width: 330px !important;
+  border-color: rgba(255, 68, 68, 0.4) !important;
+  box-shadow: 
+    0 28px 56px rgba(0, 0, 0, 0.65), 
+    0 0 0 1px rgba(255, 255, 255, 0.07) inset,
+    0 4px 20px rgba(255, 68, 68, 0.2) !important;
+}
+
+/* Dismiss Exit State */
+.qadr-clipper-toast.dismiss {
+  transform: translateY(-20px) scale(0.92) !important;
+  opacity: 0 !important;
+  transition: 
+    transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.35s ease !important;
+}
+
+/* ─── Layout row ─── */
+.qadr-toast-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+/* ─── Premium Spinner (saving state) ─── */
+.qadr-toast-spinner-wrapper {
+  position: relative !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.qadr-toast-spinner {
+  width: 100% !important;
+  height: 100% !important;
+  border: 2px solid rgba(255, 0, 49, 0.15) !important;
+  border-top: 2px solid #FF0031 !important;
+  border-radius: 50% !important;
+  animation: qadrSpin 0.75s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite !important;
+}
+
+/* ─── Drawing Checkmark SVG (saved state) ─── */
+.qadr-toast-check {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  background-color: rgba(255, 0, 49, 0.12) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border: 1px solid rgba(255, 0, 49, 0.15) !important;
+  animation: qadrPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+.qadr-toast-svg-check {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.qadr-checkmark-path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: qadrDrawCheck 0.45s ease-out 0.15s forwards !important;
+}
+
+/* ─── Error Icon ─── */
+.qadr-toast-error-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  background-color: rgba(255, 68, 68, 0.12) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border: 1px solid rgba(255, 68, 68, 0.15) !important;
+  animation: qadrShake 0.45s ease-in-out forwards !important;
+}
+
+/* ─── Typography & Info Block ─── */
+.qadr-toast-info {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.qadr-toast-label {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  color: #FF0031 !important;
+  margin-bottom: 2px !important;
+  opacity: 0.9 !important;
+  animation: qadrFadeInUp 0.3s ease forwards !important;
+}
+
+.qadr-toast-msg {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #C8C5C3 !important;
+  white-space: nowrap !important;
+}
+
+.qadr-toast-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+  line-height: 1.4 !important;
+  margin-bottom: 5px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  animation: qadrFadeInUp 0.35s ease 0.05s forwards !important;
+}
+
+/* ─── Tags & Badges ─── */
+.qadr-toast-tags {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  animation: qadrFadeInUp 0.4s ease 0.1s forwards !important;
+}
+
+.qadr-toast-badge {
+  font-size: 8.5px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  background-color: rgba(255, 0, 49, 0.14) !important;
+  color: #FF0031 !important;
+  border: 0.5px solid rgba(255, 0, 49, 0.2) !important;
+}
+
+.qadr-toast-tag {
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #A5A19F !important;
+  padding: 1px 6px !important;
+  border-radius: 8px !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ─── Premium Draining Progress Bar ─── */
+.qadr-toast-progress-bar {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #FF0031, #FF5500, #FF0031) !important;
+  width: 100% !important;
+  animation: qadrProgressDrain 3s linear forwards !important;
+  border-bottom-left-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+}
+
+/* ─── Animation Keyframes ─── */
+
+@keyframes qadrElasticSlideIn {
+  0% {
+    transform: translateY(-30px) scale(0.85) !important;
+    opacity: 0 !important;
+  }
+  70% {
+    transform: translateY(4px) scale(1.02) !important;
+  }
+  100% {
+    transform: translateY(0) scale(1) !important;
+    opacity: 1 !important;
+  }
+}
+
+@keyframes qadrShimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+
+@keyframes qadrSpin {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes qadrPopIn {
+  0% {
+    transform: scale(0.6) !important;
+    opacity: 0 !important;
+  }
+  100% {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+  }
+}
+
+@keyframes qadrDrawCheck {
+  to {
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+@keyframes qadrFadeInUp {
+  0% {
+    transform: translateY(6px) !important;
+    opacity: 0 !important;
+  }
+  100% {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+  }
+}
+
+@keyframes qadrProgressDrain {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes qadrShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}

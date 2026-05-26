@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Qadr Mind Web Clipper</title>
+    <!-- Premium Google Fonts: Space Grotesk and Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <div class="extension-container">
+      
+      <!-- Screen 1: Connect / Authentication Screen -->
+      <div id="login-screen" class="screen active">
+        <div class="logo-container">
+          <div class="glowing-orb"></div>
+          <span class="logo-text">Qadr Mind</span>
+        </div>
+        <p class="subtitle">Your personal workspace OS. Capture anything from your browser instantly.</p>
+
+        <div class="card central-auth-card">
+          <button id="web-login-btn" class="btn primary">Sign In with Qadr Web</button>
+          <p class="web-login-hint">This will open your Qadr Web Workspace. Once you sign in there, the extension connects automatically!</p>
+        </div>
+
+        <div class="advanced-toggle-wrapper">
+          <button id="toggle-manual-btn" class="btn-text">Connect manually with Sync Key</button>
+        </div>
+
+        <!-- Hidden by default: Manual Paste Sync Key -->
+        <div id="manual-auth-section" class="auth-section card hidden">
+          <p class="description">Copy your <b>User ID / Sync Key</b> from Qadr Settings and paste it below:</p>
+          <div class="input-wrapper">
+            <input type="text" id="sync-key-input" placeholder="Paste your User ID here..." autocomplete="off">
+          </div>
+          <button id="connect-sync-btn" class="btn secondary">Connect Sync Key</button>
+        </div>
+        
+        <p id="auth-error-msg" class="error-msg"></p>
+      </div>
+
+      <!-- Screen 2: Authenticated / Active Clipper Screen -->
+      <div id="active-screen" class="screen">
+        <div class="header">
+          <span class="logo-text-sm">🧠 Qadr Mind</span>
+          <button id="disconnect-btn" class="btn-text">Disconnect</button>
+        </div>
+
+        <!-- Quick Capture Row -->
+        <div class="quick-add-container card">
+          <div class="input-row">
+            <input type="text" id="quick-input" placeholder="Type here to add a note or URL...">
+            <button id="quick-add-btn" class="circle-btn">
+              <!-- Inline SVG Plus -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          <p id="quick-save-status" class="status-msg"></p>
+        </div>
+
+        <!-- Active Tab Quick Save Panel -->
+        <div class="active-tab-panel card">
+          <p class="section-label">Active Web Page</p>
+          <div class="active-page-row">
+            <div class="page-meta">
+              <span id="active-page-title" class="page-title">Loading page title...</span>
+              <span id="active-page-url" class="page-url">Loading page URL...</span>
+            </div>
+            <button id="save-page-btn" class="btn primary-sm">Save Link</button>
+          </div>
+        </div>
+
+        <!-- Recent Captures Section -->
+        <div class="recents-section">
+          <p class="section-label">Recently Captured</p>
+          <div id="recents-list" class="recents-list">
+            <!-- Dynamically populated card items -->
+            <p class="empty-state">No recent captures found. Try saving a page!</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    
+    <script src="popup.js"></script>
+  </body>
+</html>
