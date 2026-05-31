@@ -112,3 +112,48 @@ export const hasAIConfigured = (): boolean => {
   if (provider === 'ollama') return true;
   return Boolean(process.env.EXPO_PUBLIC_GROQ_API_KEY);
 };
+
+export const transcribeGroqAudio = async (
+  videoUrl: string,
+  apiKey: string,
+): Promise<string> => {
+  let response;
+  try {
+    response = await fetch(videoUrl);
+  } catch (e) {
+    const proxyBase = process.env.EXPO_PUBLIC_CONTENT_EXTRACT_URL?.trim();
+    if (proxyBase) {
+      const sep = proxyBase.includes('?') ? '&' : '?';
+      const proxyUrl = `${proxyBase}proxy${sep}url=${encodeURIComponent(videoUrl)}`;
+      response = await fetch(proxyUrl);
+    } else {
+      throw e;
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch video file: ${response.status}`);
+  }
+  const blob = await response.blob();
+
+  const formData = new FormData();
+  formData.append('file', blob, 'video.mp4');
+  formData.append('model', 'whisper-large-v3');
+
+  const { baseURL } = getConfig();
+  const res = await fetch(`${baseURL}/audio/transcriptions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Groq Whisper transcription failed: ${res.status} ${errText}`);
+  }
+
+  const data = await res.json();
+  return data.text || '';
+};

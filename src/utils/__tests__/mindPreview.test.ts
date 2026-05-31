@@ -37,6 +37,26 @@ describe('mindPreview routing', () => {
     assert.equal(shouldPreferInstagramEmbed(item, false), true);
     assert.equal(shouldPreferInstagramEmbed(item, true), true);
   });
+
+  it('hasInstagramEmbedHtml when embedHtml on twitter', () => {
+    const item: MindItem = {
+      ...base,
+      platform: 'twitter',
+      embedHtml: '<blockquote class="twitter-tweet">tweet</blockquote>',
+    };
+    assert.equal(hasInstagramEmbedHtml(item), false);
+    assert.equal(shouldPreferInstagramEmbed(item), true);
+  });
+
+  it('does not prefer twitter embed when preview slides are present', () => {
+    const item: MindItem = {
+      ...base,
+      platform: 'twitter',
+      embedHtml: '<blockquote class="twitter-tweet">tweet</blockquote>',
+      previewImageUrl: 'https://cdn.example.com/screenshot.jpg',
+    };
+    assert.equal(shouldPreferInstagramEmbed(item), false);
+  });
 });
 
 describe('needsVisionEnrich', () => {

@@ -1,6 +1,6 @@
 import type { MindContentKind, MindPlatform } from '../../types';
 import { isValidPreviewImageUrl } from '../../utils/mindImageHosts';
-import { parseInstagramOembedTitle } from '../../utils/decodeHtml';
+import { parseInstagramOembedTitle, extractTweetTextFromHtml } from '../../utils/decodeHtml';
 import {
   detectMindPlatform,
   getYoutubeVideoId,
@@ -111,6 +111,21 @@ export async function resolveInstagram(url: string): Promise<Partial<MindUrlMeta
   return {};
 }
 
+async function resolveTwitter(url: string): Promise<Partial<MindUrlMetadata>> {
+  const canonical = url.split('?')[0];
+  const oembed = await fetchOEmbed('https://publish.x.com/oembed?url=', canonical);
+  if (!oembed) return {};
+  const tweetText = extractTweetTextFromHtml(oembed.html);
+  return {
+    previewTitle: tweetText || oembed.title?.trim() || (oembed.author_name ? `Post by ${oembed.author_name}` : undefined),
+    previewDescription: oembed.author_name ? `@${oembed.author_name}` : undefined,
+    embedHtml: oembed.html?.trim() || undefined,
+    siteName: 'X / Twitter',
+    contentKind: 'social',
+  };
+}
+
+
 async function resolveYoutube(url: string, isReel: boolean): Promise<Partial<MindUrlMetadata>> {
   const videoId = getYoutubeVideoId(url);
   const thumb = videoId ? youtubeThumbnailUrl(videoId) : undefined;
@@ -173,6 +188,8 @@ export async function resolveUrlMetadata(url: string): Promise<MindUrlMetadata> 
         partial = { ...partial, ...resolveFromProxy(proxy, contentKind, det.label) };
       }
     }
+  } else if (det.platform === 'twitter') {
+    partial = { ...partial, ...(await resolveTwitter(trimmed)) };
   } else {
     const proxy = await fetchLinkPreviewProxy(trimmed);
     if (proxy) {
@@ -194,6 +211,32 @@ export async function resolveUrlMetadata(url: string): Promise<MindUrlMetadata> 
     }
   }
 
+  let previewTitle = partial.previewTitle;
+  let previewDescription = partial.previewDescription;
+
+  const checkString = [previewTitle, previewDescription]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  const isErr =
+    checkString.includes('website error') ||
+    checkString.includes('privacy extensions') ||
+    checkString.includes('something went wrong') ||
+    checkString.includes('robot check') ||
+    checkString.includes('cloudflare') ||
+    checkString.includes('access denied') ||
+    checkString.includes('403 forbidden') ||
+    checkString.includes('404 not found') ||
+    checkString.includes('page not found') ||
+    checkString.includes('captcha') ||
+    checkString.includes('security check');
+
+  if (isErr) {
+    previewTitle = undefined;
+    previewDescription = undefined;
+  }
+
   const thumb = partial.previewImageUrl?.trim();
   return {
     platform: det.platform,
@@ -201,8 +244,8 @@ export async function resolveUrlMetadata(url: string): Promise<MindUrlMetadata> 
     previewImageUrl:
       thumb && isValidPreviewImageUrl(thumb) ? thumb : undefined,
     embedHtml: partial.embedHtml,
-    previewTitle: partial.previewTitle,
-    previewDescription: partial.previewDescription,
+    previewTitle,
+    previewDescription,
     siteName: partial.siteName ?? det.label,
   };
 }

@@ -52,8 +52,15 @@ export const MindFocusScreen = () => {
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<StackNavigationProp<IdeasStackParamList>>();
   const route = useRoute<RouteProp<IdeasStackParamList, 'MindFocus'>>();
-  const { items, updateItem, togglePin, archiveItem, enrichItem, refetchPreview } =
-    useMindStore();
+  const {
+    items,
+    updateItem,
+    togglePin,
+    archiveItem,
+    enrichItem,
+    refetchPreview,
+    processItemAfterSave,
+  } = useMindStore();
   const item = items.find((i) => i.id === route.params.id);
 
   const [title, setTitle] = useState('');
@@ -62,6 +69,7 @@ export const MindFocusScreen = () => {
   const [titleEdited, setTitleEdited] = useState(false);
   const carouselRefetchCount = useRef(0);
   const prevEnrichPending = useRef(false);
+  const hasRefetchedPreview = useRef<Record<string, boolean>>({});
 
   // Reset local fields only when navigating to a different capture.
   useEffect(() => {
@@ -74,6 +82,13 @@ export const MindFocusScreen = () => {
     setNotes(item.userNotes ?? '');
   }, [item?.id]);
 
+  // Auto-enrich if the item is pending enrichment
+  useEffect(() => {
+    if (item && item.enrichPending) {
+      void processItemAfterSave(item.id, true);
+    }
+  }, [item?.id, item?.enrichPending, processItemAfterSave]);
+
   // Apply pipeline/AI title without overwriting user edits.
   useEffect(() => {
     if (!item || titleEdited || item.enrichPending) return;
@@ -82,7 +97,9 @@ export const MindFocusScreen = () => {
   }, [item?.title, item?.previewTitle, item?.aiEnriched, item?.enrichPending, titleEdited]);
 
   useEffect(() => {
-    if (item?.url && !item.previewImageUrl && !item.enrichPending) {
+    if (!item) return;
+    if (item.url && !item.previewImageUrl && !item.enrichPending && !hasRefetchedPreview.current[item.id]) {
+      hasRefetchedPreview.current[item.id] = true;
       void refetchPreview(item.id);
     }
   }, [item?.id, item?.url, item?.previewImageUrl, item?.enrichPending, refetchPreview]);

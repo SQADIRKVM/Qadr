@@ -18,6 +18,7 @@ export interface ContentExtractResult {
   transcript?: string;
   platform: MindPlatform;
   contentKind: MindContentKind;
+  videoUrl?: string;
 }
 
 interface ExtractProxyPayload {
@@ -30,6 +31,7 @@ interface ExtractProxyPayload {
   transcript?: string;
   siteName?: string;
   site_name?: string;
+  videoUrl?: string;
 }
 
 const MAX_PREVIEW_IMAGES = 10;
@@ -158,6 +160,7 @@ export async function fetchContentExtract(url: string): Promise<ContentExtractRe
   let embedHtml = meta.embedHtml;
   let text: string | undefined;
   let transcript: string | undefined;
+  let videoUrl: string | undefined;
 
   const proxy = await fetchExtractProxy(trimmed);
   if (proxy) {
@@ -170,6 +173,7 @@ export async function fetchContentExtract(url: string): Promise<ContentExtractRe
     embedHtml = proxy.embedHtml?.trim() || embedHtml;
     text = proxy.text ? decodeHtmlEntities(proxy.text.trim()) : undefined;
     transcript = proxy.transcript?.trim();
+    videoUrl = proxy.videoUrl;
   }
 
   const reddit = await fetchRedditJson(trimmed);
@@ -187,6 +191,31 @@ export async function fetchContentExtract(url: string): Promise<ContentExtractRe
     }
   }
 
+  const checkString = [title, description, text, transcript]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  const isErr =
+    checkString.includes('website error') ||
+    checkString.includes('privacy extensions') ||
+    checkString.includes('something went wrong') ||
+    checkString.includes('robot check') ||
+    checkString.includes('cloudflare') ||
+    checkString.includes('access denied') ||
+    checkString.includes('403 forbidden') ||
+    checkString.includes('404 not found') ||
+    checkString.includes('page not found') ||
+    checkString.includes('captcha') ||
+    checkString.includes('security check');
+
+  if (isErr) {
+    title = undefined;
+    description = undefined;
+    text = undefined;
+    transcript = undefined;
+  }
+
   const contentExcerpt = buildExcerpt(text, transcript, description);
   const previewImages = images ?? normalizePreviewImages(undefined, image);
   const primaryImage = previewImages?.[0] ?? image;
@@ -201,6 +230,7 @@ export async function fetchContentExtract(url: string): Promise<ContentExtractRe
     embedHtml,
     text: text ?? contentExcerpt,
     transcript,
+    videoUrl,
   };
 }
 

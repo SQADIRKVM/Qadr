@@ -114,3 +114,12 @@ export function getInstagramShortcode(url: string): string | null {
   const m = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/i);
   return m?.[1] ?? null;
 }
+
+export function extractTweetTextFromHtml(html?: string): string | undefined {
+  if (!html) return undefined;
+  const match = html.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+  if (!match) return undefined;
+  const text = match[1].replace(/<[^>]*>/g, '');
+  return decodeHtmlEntities(text).trim();
+}
+

@@ -55,8 +55,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
           strokeDasharray={`${circ} ${circ}`}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          rotation="-90"
-          origin={`${size / 2}, ${size / 2}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
       {children}

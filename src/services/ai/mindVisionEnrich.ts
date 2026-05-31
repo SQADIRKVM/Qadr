@@ -2,6 +2,7 @@ import type { MindItem } from '../../types';
 import { parseAIJson } from '../../utils/parseAIJson';
 import { getMindPreviewSlides } from '../../utils/mindPlatformBadge';
 import { isHashtagStyleMindTitle, isProvisionalMindTitle } from '../../utils/mindTitle';
+import { getMindContentKind } from '../../utils/mindUrl';
 import { hasAIConfigured, visionChatCompletion, type VisionContentPart } from './client';
 
 const VISION_SYSTEM = `You analyze saved social post images. Return ONLY valid JSON:
@@ -22,6 +23,9 @@ export function needsVisionEnrich(item: MindItem): boolean {
   if (!hasAIConfigured()) return false;
   const slides = getMindPreviewSlides(item);
   if (!slides.length && !item.previewImageUrl && !item.imageUri) return false;
+
+  const kind = getMindContentKind(item);
+  if (kind === 'reel' || kind === 'video') return true;
 
   const caption = item.contentExcerpt?.trim() ?? '';
   if (!caption) return true;

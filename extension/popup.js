@@ -1,35 +1,7 @@
-// Asynchronously load and parse standard local .env file inside extension origin
-async function loadEnv() {
-  try {
-    const res = await fetch(chrome.runtime.getURL('.env'));
-    if (!res.ok) throw new Error("Could not find .env file");
-    const text = await res.text();
-    const config = {};
-    text.split(/\r?\n/).forEach((line) => {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) return;
-      const match = trimmed.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const key = match[1].trim();
-        let value = match[2].trim();
-        if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-        if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-        config[key] = value;
-      }
-    });
-    return config;
-  } catch (e) {
-    console.error("Failed to load .env inside extension:", e);
-    return {};
-  }
+async function getCredentials() {
+  return typeof QADR_ENV !== 'undefined' ? QADR_ENV : {};
 }
 
-let cachedConfig = null;
-async function getCredentials() {
-  if (cachedConfig) return cachedConfig;
-  cachedConfig = await loadEnv();
-  return cachedConfig;
-}
 
 // Dynamically scan all open tabs to find any running Qadr workspace to extract the logged-in Firebase details.
 // Checks our custom key first, then falls back to Firebase SDK's own persistence keys.

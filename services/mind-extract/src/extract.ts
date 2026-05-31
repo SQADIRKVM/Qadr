@@ -5,6 +5,7 @@ import {
   getInstagramShortcode,
   parseInstagramOembedTitle,
   stripEngagementFromText,
+  extractTweetTextFromHtml,
 } from './instagramMeta.js';
 import { isValidPreviewImageUrl } from './imageUrl.js';
 
@@ -16,6 +17,7 @@ export interface ExtractResponse {
   embedHtml?: string;
   text?: string;
   transcript?: string;
+  videoUrl?: string;
 }
 
 const MAX_IMAGES = 10;
@@ -326,6 +328,25 @@ function extractInstagramCaption(html: string): string | undefined {
   return undefined;
 }
 
+function extractInstagramVideoUrl(html: string): string | undefined {
+  const ogVideoMatch = html.match(/<meta[^>]+(?:property|name)=["']og:video(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i);
+  if (ogVideoMatch?.[1]) {
+    return decodeEntities(ogVideoMatch[1].trim());
+  }
+
+  const videoUrlMatch = html.match(/"video_url"\s*:\s*"([^"\\]+(?:\\.[^"\\]*)*)"/);
+  if (videoUrlMatch?.[1]) {
+    return unescapeInstagramJsonUrl(videoUrlMatch[1]);
+  }
+
+  const videoTagMatch = html.match(/<video[^>]+src=["']([^"']+)["']/i);
+  if (videoTagMatch?.[1]) {
+    return decodeEntities(videoTagMatch[1].trim());
+  }
+
+  return undefined;
+}
+
 async function extractInstagram(targetUrl: string): Promise<ExtractResponse> {
   const oembed = await fetchInstagramOembed(targetUrl);
   const author = oembed?.author_name?.trim();
@@ -355,7 +376,11 @@ async function extractInstagram(targetUrl: string): Promise<ExtractResponse> {
     }
   }
 
+  let videoUrl: string | undefined;
   for (const html of htmlSources) {
+    if (!videoUrl) {
+      videoUrl = extractInstagramVideoUrl(html);
+    }
     const ogDesc = decodeHtmlEntities(
       ogMeta(html, 'og:description') ?? ogMeta(html, 'twitter:description') ?? '',
     );
@@ -391,8 +416,34 @@ async function extractInstagram(targetUrl: string): Promise<ExtractResponse> {
     images: images.length ? images : primaryImage ? [primaryImage] : undefined,
     embedHtml: oembed?.html?.trim() || undefined,
     text,
+    videoUrl,
   };
 }
+
+async function extractTwitter(targetUrl: string): Promise<ExtractResponse> {
+  const canonical = targetUrl.split('?')[0];
+  try {
+    const res = await fetch(`https://publish.x.com/oembed?url=${encodeURIComponent(canonical)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (res.ok) {
+      const oembed = await res.json() as { title?: string; author_name?: string; html?: string };
+      const tweetText = extractTweetTextFromHtml(oembed.html);
+      return {
+        title: tweetText || oembed.title?.trim() || (oembed.author_name ? `Post by ${oembed.author_name}` : undefined),
+        description: oembed.author_name ? `@${oembed.author_name}` : undefined,
+        embedHtml: oembed.html?.trim() || undefined,
+        text: tweetText || oembed.title || undefined,
+        platform: 'twitter',
+        contentKind: 'social',
+      };
+    }
+  } catch {
+    // ignore
+  }
+  return { platform: 'twitter', contentKind: 'social' };
+}
+
 
 export async function fetchPageHtml(url: string, userAgent = MOBILE_UA): Promise<string> {
   const res = await fetch(url, {
@@ -416,6 +467,10 @@ export async function extractFromUrl(targetUrl: string): Promise<ExtractResponse
 
   if (isInstagramUrl(trimmed)) {
     return extractInstagram(trimmed);
+  }
+
+  if (/twitter\.com|x\.com/i.test(trimmed)) {
+    return extractTwitter(trimmed);
   }
 
   const videoId = getYoutubeVideoId(trimmed);
@@ -445,6 +500,7 @@ export async function extractFromUrl(targetUrl: string): Promise<ExtractResponse
   }
 
   let images: string[] | undefined;
+  let videoUrl: string | undefined;
 
   try {
     const html = await fetchPageHtml(trimmed);
@@ -452,6 +508,7 @@ export async function extractFromUrl(targetUrl: string): Promise<ExtractResponse
     description =
       description ?? ogMeta(html, 'og:description') ?? ogMeta(html, 'twitter:description');
     image = image ?? ogMeta(html, 'og:image') ?? ogMeta(html, 'twitter:image');
+    videoUrl = ogMeta(html, 'og:video') ?? ogMeta(html, 'og:video:secure_url');
     const collected = collectImagesFromHtml(html, image);
     if (collected.length) images = collected;
 
@@ -483,5 +540,6 @@ export async function extractFromUrl(targetUrl: string): Promise<ExtractResponse
     images: images?.length ? images : primaryImage ? [primaryImage] : undefined,
     text,
     transcript,
+    videoUrl,
   };
 }

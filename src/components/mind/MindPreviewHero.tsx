@@ -20,7 +20,13 @@ export const MindPreviewHero: React.FC<MindPreviewHeroProps> = ({
 
   const isWeb = Platform.OS === 'web';
   if (shouldPreferInstagramEmbed(item, isWeb)) {
-    hero = <MindInstagramEmbed embedHtml={item.embedHtml!} height={Math.max(height, 300)} />;
+    hero = (
+      <MindInstagramEmbed
+        embedHtml={item.embedHtml!}
+        height={item.platform === 'twitter' ? Math.max(height, 360) : Math.max(height, 300)}
+        isTwitter={item.platform === 'twitter'}
+      />
+    );
   } else {
     hero = <MindMediaCarousel item={item} height={height} onOpenUrl={onOpenUrl} />;
   }

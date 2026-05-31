@@ -4,6 +4,7 @@ import {
   decodeHtmlEntities,
   parseInstagramOembedTitle,
   isBadMindFetchedTitle,
+  extractTweetTextFromHtml,
 } from '../decodeHtml';
 
 describe('decodeHtml', () => {
@@ -31,5 +32,14 @@ describe('decodeHtml', () => {
     assert.equal(isBadMindFetchedTitle('Foo on Instagram: "bar"'), true);
     assert.equal(isBadMindFetchedTitle('&#xd26; test'), true);
     assert.equal(isBadMindFetchedTitle('Drishyam 3 climax'), false);
+    assert.equal(isBadMindFetchedTitle('X.com website error due to privacy extensions'), true);
+    assert.equal(isBadMindFetchedTitle('Something went wrong'), true);
+    assert.equal(isBadMindFetchedTitle('Attention Required! | Cloudflare'), true);
+  });
+
+  it('extractTweetTextFromHtml extracts and decodes tweet text from oembed html', () => {
+    const html = '<blockquote class="twitter-tweet"><p lang="en" dir="ltr">This is a tweet with &quot;quotes&quot; and <a href="https://t.co">links</a>.</p>&mdash; User (@user) <a href="status">date</a></blockquote>';
+    const text = extractTweetTextFromHtml(html);
+    assert.equal(text, 'This is a tweet with "quotes" and links.');
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { articleTextFromHtml } from '../extract.js';
+import { extractTweetTextFromHtml } from '../instagramMeta.js';
 
 describe('extract', () => {
   it('articleTextFromHtml extracts readable text from HTML', () => {
@@ -12,4 +13,11 @@ describe('extract', () => {
     assert.ok(text?.includes('delimitation'));
     assert.ok(text?.includes('India'));
   });
+
+  it('extractTweetTextFromHtml extracts tweet text', () => {
+    const html = '<blockquote class="twitter-tweet"><p lang="en" dir="ltr">This is a tweet with &quot;quotes&quot; and <a href="https://t.co">links</a>.</p>&mdash; User (@user) <a href="status">date</a></blockquote>';
+    const text = extractTweetTextFromHtml(html);
+    assert.equal(text, 'This is a tweet with "quotes" and links.');
+  });
 });
+

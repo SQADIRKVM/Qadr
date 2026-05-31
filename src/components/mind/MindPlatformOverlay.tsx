@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome6 } from '@expo/vector-icons';
 import type { MindItem } from '../../types';
 import { getMindFormatBadge, getMindPlatformIcon, hasMindCarousel } from '../../utils/mindPlatformBadge';
 import { spacing } from '../../theme/spacing';
@@ -25,7 +25,11 @@ export const MindPlatformOverlay: React.FC<MindPlatformOverlayProps> = ({ item }
   return (
     <>
       <View style={[styles.chipBase, styles.platformChip]} pointerEvents="none">
-        <MaterialCommunityIcons name={icon} size={16} color={colors.onSurface} />
+        {platform === 'twitter' ? (
+          <FontAwesome6 name="x-twitter" size={14} color={colors.onSurface} />
+        ) : (
+          <MaterialCommunityIcons name={icon} size={16} color={colors.onSurface} />
+        )}
       </View>
       {showCarousel ? (
         <View style={[styles.chipBase, styles.carouselChip]} pointerEvents="none">

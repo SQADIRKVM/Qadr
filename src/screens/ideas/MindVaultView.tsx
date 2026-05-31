@@ -67,6 +67,14 @@ export const MindVaultView: React.FC = () => {
     setSearchInput(mindSearch);
   }, [mindSearch]);
 
+  const pendingCount = useMemo(() => items.filter((i) => i.enrichPending).length, [items]);
+
+  useEffect(() => {
+    if (pendingCount > 0) {
+      void enrichPendingItems();
+    }
+  }, [pendingCount, enrichPendingItems]);
+
   const handleSearchChange = (val: string) => {
     setSearchInput(val);
     setMindSearch(val);

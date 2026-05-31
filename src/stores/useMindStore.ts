@@ -5,6 +5,7 @@ import { generateId } from '../utils/id';
 import { enrichMindItem } from '../services/ai/mindEnrich';
 import { visionEnrichMindItem } from '../services/ai/mindVisionEnrich';
 import { hasAIConfigured } from '../services/ai/client';
+import { extractVideoFrames } from '../utils/videoFrames';
 import {
   contentExcerptFromExtract,
   fetchContentExtract,
@@ -124,6 +125,9 @@ function buildDraft(input: MindSaveInput, enrichWithAi: boolean): MindItem {
   };
 }
 
+const activeProcesses = new Set<string>();
+const activeEnrichments = new Set<string>();
+
 export const useMindStore = create<MindState>()(
   persist(
     (set, get) => ({
@@ -207,82 +211,153 @@ export const useMindStore = create<MindState>()(
       },
 
       processItemAfterSave: async (id, runAi) => {
-        const item = get().items.find((i) => i.id === id);
-        if (!item) return;
+        if (activeProcesses.has(id)) return;
+        activeProcesses.add(id);
 
-        if (item.url) {
-          await get().hydrateItemMetadata(id);
-          const current = get().items.find((i) => i.id === id);
-          if (!current?.url) return;
-          try {
-            const extract = await fetchContentExtract(current.url);
-            const excerpt = contentExcerptFromExtract(extract);
-            const { type, isReel } = contentKindToMindType(extract.contentKind);
-            const topicTags = generateTopicTagsFromContent(
-              topicTagInputFromItem(current, {
-                title: extract.title ?? current.previewTitle,
-                description: extract.description,
-                excerpt,
-                transcript: extract.transcript,
-              }),
-            );
-            const previewImages = extract.images?.length
-              ? extract.images
-              : extract.image
-                ? [extract.image]
-                : current.previewImages;
-            const previewImageUrl =
-              extract.image ?? previewImages?.[0] ?? current.previewImageUrl;
+        try {
+          const item = get().items.find((i) => i.id === id);
+          if (!item) return;
 
-            const previewTitle = extract.text ?? current.previewTitle ?? extract.title;
-            let resolvedTitle = extract.title;
-            if (isBadMindFetchedTitle(resolvedTitle)) resolvedTitle = undefined;
-            const titleContext = { previewTitle, contentExcerpt: excerpt };
-            const persistTitle =
-              resolvedTitle &&
-              isMindDefaultTitle(current) &&
-              isPersistableMindTitle(resolvedTitle, titleContext)
-                ? resolvedTitle
-                : undefined;
+          if (item.url) {
+            try {
+              await get().hydrateItemMetadata(id);
+            } catch (err) {
+              console.warn('hydrateItemMetadata failed:', err);
+            }
+            const current = get().items.find((i) => i.id === id);
+            if (!current?.url) return;
+            try {
+              const extract = await fetchContentExtract(current.url);
+              let previewImages = extract.images?.length
+                ? extract.images
+                : extract.image
+                  ? [extract.image]
+                  : current.previewImages;
+              let previewImageUrl =
+                extract.image ?? previewImages?.[0] ?? current.previewImageUrl;
 
+              if (extract.videoUrl) {
+                // eslint-disable-next-line no-console
+                console.log('[useMindStore] Video URL detected, extracting frames client-side:', extract.videoUrl);
+                try {
+                  const frames = await extractVideoFrames(extract.videoUrl);
+                  if (frames.length) {
+                    // eslint-disable-next-line no-console
+                    console.log(`[useMindStore] Extracted ${frames.length} frames successfully.`);
+                    previewImages = frames;
+                    previewImageUrl = frames[0];
+                  } else {
+                    // eslint-disable-next-line no-console
+                    console.warn('[useMindStore] Video frame extraction returned 0 frames.');
+                  }
+                } catch (err) {
+                  // eslint-disable-next-line no-console
+                  console.error('[useMindStore] Failed to extract video frames:', err);
+                }
+              }
+
+               const isBadTitle = isBadMindFetchedTitle(extract.title);
+              const checkString = [extract.title, extract.description, extract.text]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+              const isScraperError = !!(
+                checkString.includes('website error') ||
+                checkString.includes('privacy extensions') ||
+                checkString.includes('something went wrong') ||
+                checkString.includes('robot check') ||
+                checkString.includes('cloudflare') ||
+                checkString.includes('access denied') ||
+                checkString.includes('403 forbidden') ||
+                checkString.includes('404 not found') ||
+                checkString.includes('page not found') ||
+                checkString.includes('captcha') ||
+                checkString.includes('security check')
+              );
+
+              const previewTitle = isScraperError
+                ? current.previewTitle
+                : (extract.text ?? current.previewTitle ?? extract.title);
+              const previewDescription = isScraperError
+                ? current.previewDescription
+                : (extract.description ?? current.previewDescription);
+              let excerpt = isScraperError
+                ? current.contentExcerpt
+                : contentExcerptFromExtract(extract);
+
+              if (!excerpt && previewTitle) {
+                excerpt = [previewTitle, previewDescription].filter(Boolean).join('\n\n');
+              }
+              const { type, isReel } = contentKindToMindType(extract.contentKind);
+              
+              let resolvedTitle = isBadTitle ? undefined : extract.title;
+              const topicTags = generateTopicTagsFromContent(
+                topicTagInputFromItem(current, {
+                  title: resolvedTitle ?? current.previewTitle,
+                  description: previewDescription,
+                  excerpt,
+                  transcript: isScraperError ? undefined : extract.transcript,
+                }),
+              );
+
+              const titleContext = { previewTitle, contentExcerpt: excerpt };
+              const persistTitle =
+                resolvedTitle &&
+                isMindDefaultTitle(current) &&
+                isPersistableMindTitle(resolvedTitle, titleContext)
+                  ? resolvedTitle
+                  : undefined;
+
+              get().updateItem(id, {
+                platform: extract.platform,
+                contentKind: extract.contentKind,
+                type,
+                isReel,
+                previewTitle,
+                previewDescription,
+                previewImageUrl,
+                previewImages,
+                embedHtml: extract.embedHtml ?? current.embedHtml,
+                contentExcerpt: excerpt,
+                transcript: isScraperError ? undefined : extract.transcript,
+                autoTags: topicTags,
+                extractError: undefined,
+                ...(persistTitle ? { title: persistTitle } : {}),
+              });
+            } catch (e) {
+              const message = e instanceof Error ? e.message : 'Content extract failed';
+              get().updateItem(id, { extractError: message });
+            }
+          } else if (item.type === 'note') {
             get().updateItem(id, {
-              platform: extract.platform,
-              contentKind: extract.contentKind,
-              type,
-              isReel,
-              previewTitle,
-              previewDescription: extract.description ?? current.previewDescription,
-              previewImageUrl,
-              previewImages,
-              embedHtml: extract.embedHtml ?? current.embedHtml,
-              contentExcerpt: excerpt,
-              transcript: extract.transcript,
-              autoTags: topicTags,
-              extractError: undefined,
-              ...(persistTitle ? { title: persistTitle } : {}),
+              contentExcerpt: item.rawContent,
             });
-          } catch (e) {
-            const message = e instanceof Error ? e.message : 'Content extract failed';
-            get().updateItem(id, { extractError: message });
           }
-        } else if (item.type === 'note') {
-          get().updateItem(id, {
-            contentExcerpt: item.rawContent,
-          });
-        }
 
-        if (runAi) {
-          await get().enrichItem(id);
-        } else {
-          const current = get().items.find((i) => i.id === id);
-          if (current && (current.autoTags?.length ?? 0) === 0) {
-            const tags = generateTopicTagsFromContent(
-              topicTagInputFromItem(current, {
-                excerpt: current.contentExcerpt ?? current.rawContent,
-              }),
-            );
-            if (tags.length) get().updateItem(id, { autoTags: tags });
+          if (runAi) {
+            await get().enrichItem(id);
+          } else {
+            const current = get().items.find((i) => i.id === id);
+            if (current && (current.autoTags?.length ?? 0) === 0) {
+              const tags = generateTopicTagsFromContent(
+                topicTagInputFromItem(current, {
+                  excerpt: current.contentExcerpt ?? current.rawContent,
+                }),
+              );
+              if (tags.length) get().updateItem(id, { autoTags: tags });
+            }
           }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('processItemAfterSave failed:', error);
+          if (runAi) {
+            get().updateItem(id, {
+              enrichPending: false,
+              aiEnriched: false,
+            });
+          }
+        } finally {
+          activeProcesses.delete(id);
         }
 
         const capturedId = id;
@@ -307,46 +382,61 @@ export const useMindStore = create<MindState>()(
       },
 
       enrichItem: async (id) => {
-        const item = get().items.find((i) => i.id === id);
-        if (!item) return;
-        get().updateItem(id, { enrichPending: true });
-        let fresh = get().items.find((i) => i.id === id) ?? item;
-        const vision = await visionEnrichMindItem(fresh);
-        if (Object.keys(vision.patch).length) {
-          get().updateItem(id, vision.patch);
-          fresh = get().items.find((i) => i.id === id) ?? fresh;
-        }
-        if (vision.error && hasAIConfigured()) {
-          // eslint-disable-next-line no-console
-          console.warn('Mind vision enrich:', vision.error);
-        }
-        const { patch, fromStub, error } = await enrichMindItem(fresh);
-        if (fromStub && error && hasAIConfigured()) {
-          // eslint-disable-next-line no-console
-          console.warn('Mind enrich failed:', error);
-        }
-        const mergedPatch = { ...patch };
-        if (mergedPatch.autoTags?.length) {
-          if (fromStub) {
-            mergedPatch.autoTags = mergeMindTags(fresh.autoTags ?? [], mergedPatch.autoTags);
-          } else {
-            mergedPatch.autoTags = filterAndMergeSmartTags(
-              fresh.autoTags ?? [],
-              mergedPatch.autoTags,
-              topicTagInputFromItem(fresh),
-            );
+        if (activeEnrichments.has(id)) return;
+        activeEnrichments.add(id);
+
+        try {
+          const item = get().items.find((i) => i.id === id);
+          if (!item) return;
+          get().updateItem(id, { enrichPending: true });
+
+          let fresh = get().items.find((i) => i.id === id) ?? item;
+          const vision = await visionEnrichMindItem(fresh);
+          if (Object.keys(vision.patch).length) {
+            get().updateItem(id, vision.patch);
+            fresh = get().items.find((i) => i.id === id) ?? fresh;
           }
+          if (vision.error && hasAIConfigured()) {
+            // eslint-disable-next-line no-console
+            console.warn('Mind vision enrich:', vision.error);
+          }
+          const { patch, fromStub, error } = await enrichMindItem(fresh);
+          if (fromStub && error && hasAIConfigured()) {
+            // eslint-disable-next-line no-console
+            console.warn('Mind enrich failed:', error);
+          }
+          const mergedPatch = { ...patch };
+          if (mergedPatch.autoTags?.length) {
+            if (fromStub) {
+              mergedPatch.autoTags = mergeMindTags(fresh.autoTags ?? [], mergedPatch.autoTags);
+            } else {
+              mergedPatch.autoTags = filterAndMergeSmartTags(
+                fresh.autoTags ?? [],
+                mergedPatch.autoTags,
+                topicTagInputFromItem(fresh),
+              );
+            }
+          }
+          get().updateItem(id, {
+            ...mergedPatch,
+            enrichPending: false,
+            aiEnriched: true,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('enrichItem failed:', error);
+          get().updateItem(id, {
+            enrichPending: false,
+            aiEnriched: false,
+          });
+        } finally {
+          activeEnrichments.delete(id);
         }
-        get().updateItem(id, {
-          ...mergedPatch,
-          enrichPending: false,
-          aiEnriched: true,
-        });
       },
 
       enrichPendingItems: async () => {
         const pending = get().items.filter((i) => i.enrichPending);
-        await Promise.all(pending.map((i) => get().enrichItem(i.id)));
+        await Promise.all(pending.map((i) => get().processItemAfterSave(i.id, true)));
       },
 
       togglePin: (id) => {
@@ -381,6 +471,9 @@ export const useMindStore = create<MindState>()(
           }
           return normalized;
         });
+        setTimeout(() => {
+          void state.enrichPendingItems();
+        }, 1000);
       },
     },
   ),

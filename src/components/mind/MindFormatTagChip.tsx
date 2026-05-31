@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome6 } from '@expo/vector-icons';
 import { AppText } from '../primitives/AppText';
 import type { MindFormatBadge } from '../../utils/mindPlatformBadge';
 import { spacing } from '../../theme/spacing';
@@ -15,14 +15,18 @@ interface MindFormatTagChipProps {
 export const MindFormatTagChip: React.FC<MindFormatTagChipProps> = ({ badge }) => {
   const colors = useColors();
   const styles = useThemedStyles(createStyles);
-return (
-  <View style={styles.chip}>
-    <MaterialCommunityIcons name={badge.icon} size={14} color={colors.onSurface} />
-    <AppText variant="body-md" style={styles.label}>
-      {badge.label}
-    </AppText>
-  </View>
-);
+  return (
+    <View style={styles.chip}>
+      {badge.platform === 'twitter' ? (
+        <FontAwesome6 name="x-twitter" size={12} color={colors.onSurface} />
+      ) : (
+        <MaterialCommunityIcons name={badge.icon} size={14} color={colors.onSurface} />
+      )}
+      <AppText variant="body-md" style={styles.label}>
+        {badge.label}
+      </AppText>
+    </View>
+  );
 }
 
 const createStyles = (colors: ColorPalette) => StyleSheet.create({

@@ -120,5 +120,32 @@ export function isBadMindFetchedTitle(title?: string): boolean {
   if (/&#x?[0-9a-f]+;/i.test(t)) return true;
   if (/on Instagram:/i.test(t)) return true;
   if (/^https?:\/\//i.test(t)) return true;
+
+  const lower = t.toLowerCase();
+  if (
+    lower.includes('website error') ||
+    lower.includes('privacy extensions') ||
+    lower.includes('something went wrong') ||
+    lower.includes('robot check') ||
+    lower.includes('cloudflare') ||
+    lower.includes('access denied') ||
+    lower.includes('403 forbidden') ||
+    lower.includes('404 not found') ||
+    lower.includes('page not found') ||
+    lower.includes('captcha') ||
+    lower.includes('security check')
+  ) {
+    return true;
+  }
+
   return false;
 }
+
+export function extractTweetTextFromHtml(html?: string): string | undefined {
+  if (!html) return undefined;
+  const match = html.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+  if (!match) return undefined;
+  const text = match[1].replace(/<[^>]*>/g, '');
+  return decodeHtmlEntities(text).trim();
+}
+

@@ -1,39 +1,32 @@
-// Asynchronously load and parse standard local .env file inside extension origin
-async function loadEnv() {
-  try {
-    const res = await fetch(chrome.runtime.getURL('.env'));
-    if (!res.ok) throw new Error("Could not find .env file");
-    const text = await res.text();
-    const config = {};
-    text.split(/\r?\n/).forEach((line) => {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) return;
-      const match = trimmed.match(/^([^=]+)=(.*)$/);
-      if (match) {
-        const key = match[1].trim();
-        let value = match[2].trim();
-        if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-        if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-        config[key] = value;
-      }
-    });
-    return config;
-  } catch (e) {
-    console.error("Failed to load .env inside extension:", e);
-    return {};
-  }
+// Synchronously load env.js which registers the global QADR_ENV configuration
+try {
+  importScripts('env.js');
+} catch (e) {
+  console.error("Failed to importScripts('env.js'):", e);
 }
 
-let cachedConfig = null;
 async function getCredentials() {
-  if (cachedConfig) return cachedConfig;
-  cachedConfig = await loadEnv();
-  return cachedConfig;
+  return typeof QADR_ENV !== 'undefined' ? QADR_ENV : {};
 }
+
 
 // Helper to generate IDs matching Qadr's style
 function generateId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+// Helper to capture active tab screenshot
+function captureTabPromise(windowId) {
+  return new Promise((resolve) => {
+    chrome.tabs.captureVisibleTab(windowId, { format: "jpeg", quality: 40 }, (dataUrl) => {
+      if (chrome.runtime.lastError) {
+        console.warn("captureVisibleTab error:", chrome.runtime.lastError.message);
+        resolve(undefined);
+      } else {
+        resolve(dataUrl);
+      }
+    });
+  });
 }
 
 // Classify URL to get appropriate Qadr contentKind, platform and type badges
@@ -115,6 +108,7 @@ async function saveToMind(userId, input) {
     updatedAt: now,
     enrichPending: true,
     aiEnriched: false,
+    videoUrl: input.videoUrl || undefined,
   };
 
   // 1. Fetch current Zustand store state from Supabase sync_domains
@@ -247,11 +241,35 @@ chrome.action.onClicked.addListener(async (tab) => {
       }
     }
 
-    // 2. Save to Supabase
+    // 2. Query videoUrl from active tab
+    let videoUrl = undefined;
     try {
+      const resp = await chrome.tabs.sendMessage(tab.id, { action: "get_video_url" });
+      if (resp && resp.videoUrl) {
+        videoUrl = resp.videoUrl;
+      }
+    } catch (e) {
+      console.warn("Could not query videoUrl directly from tab, attempting after injecting script...");
+    }
+
+    // 3. Capture and Save to Supabase
+    try {
+      const imageUri = await captureTabPromise(null);
+      // If we couldn't get videoUrl, try one more time after injecting content script (if context was invalidated)
+      if (!videoUrl) {
+        try {
+          const resp = await chrome.tabs.sendMessage(tab.id, { action: "get_video_url" });
+          if (resp && resp.videoUrl) {
+            videoUrl = resp.videoUrl;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
       const item = await saveToMind(userId, {
         url: tab.url,
         title: tab.title,
+        imageUri: imageUri,
+        videoUrl: videoUrl,
       });
 
       // 3. Show "saved!" toast
@@ -309,9 +327,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       let itemInput = {};
       if (info.menuItemId === "save-page") {
+        const imageUri = await captureTabPromise(null);
         itemInput = {
           url: info.pageUrl,
           title: tab.title,
+          imageUri: imageUri,
         };
       } else if (info.menuItemId === "save-selection") {
         itemInput = {

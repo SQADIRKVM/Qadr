@@ -40,6 +40,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const styles = useThemedStyles(createStyles);
   const label = userDisplayLabel(displayName, email, fallbackName?.trim() || '');
   const hasPhoto = Boolean(photoUrl?.trim());
+  // eslint-disable-next-line no-console
+  console.log('[UserAvatar] photoUrl:', photoUrl, 'hasPhoto:', hasPhoto, 'label:', label);
   const hasLabel = Boolean(label);
   const radius = size / 2;
 
@@ -47,6 +49,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     <Image
       source={{ uri: photoUrl! }}
       style={[styles.image, { width: size, height: size, borderRadius: radius }]}
+      resizeMode="cover"
+      {...({ referrerPolicy: 'no-referrer' } as any)}
     />
   ) : hasLabel ? (
     <View

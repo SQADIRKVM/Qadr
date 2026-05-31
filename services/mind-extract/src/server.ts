@@ -10,6 +10,7 @@ function corsHeaders(contentType?: string): Record<string, string> {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
     'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
     ...(contentType ? { 'Content-Type': contentType } : {}),
   };
 }
@@ -41,7 +42,8 @@ function validateProxyTarget(target: string): URL | null {
   try {
     const u = new URL(target);
     if (!/^https?:$/i.test(u.protocol)) return null;
-    if (!isInstagramCdnHost(u.hostname) || !isValidPreviewImageUrl(target)) return null;
+    if (isInstagramCdnHost(u.hostname)) return u;
+    if (!isValidPreviewImageUrl(target)) return null;
     return u;
   } catch {
     return null;
@@ -73,7 +75,7 @@ async function proxyImageGet(target: string, res: http.ServerResponse) {
     return;
   }
   const contentType = upstream.headers.get('content-type') ?? 'image/jpeg';
-  if (!/^image\//i.test(contentType)) {
+  if (!/^(image|video)\//i.test(contentType)) {
     sendJson(res, 502, { error: `Upstream returned ${contentType}` });
     return;
   }
